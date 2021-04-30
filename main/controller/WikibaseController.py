@@ -14,6 +14,7 @@ api = Namespace('WIKIBASE_CONTROLLER', description='test controller initi')
 
 
 @api.route('/search')
+@api.doc(security='apikey')
 @api.param('keyword', 'Search keyword')
 class WikibaseController(Resource):
     parser = None
