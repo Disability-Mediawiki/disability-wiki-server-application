@@ -11,8 +11,8 @@ from flask import Flask
 from flask_restplus import Resource, Api, Namespace
 from flask import current_app
 
-from main.service.WikibaseApi import WikibaseApi
-from main.service.SparqlService import SparqlService
+from application.main.service.WikibaseApi import WikibaseApi
+from application.main.service.SparqlService import SparqlService
 
 
 class SearchItemService():

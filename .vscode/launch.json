@@ -22,6 +22,23 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "Flask manage.py",
+            "type": "python",
+            "request": "launch",
+            "module": "flask",
+            "env": {
+                "FLASK_APP": "manage.py"
+            },
+            "args": [
+                //  "debug",
+                "run",
+                "--no-debugger",
+                // "--no-reload"
+            ],
+            "jinja": true,
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",

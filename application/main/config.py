@@ -11,8 +11,10 @@ class Config:
     DEBUG = False
     MAIN_PATH = basedir
     # PYWIKICONFIGURATION
-    PYWIKI_FAMILY_FILE = basedir.rsplit('\\', 1)[0]+'\\config\\my_family.py'
-    PYWIKI_USER_PASSWORD_FILE = basedir.rsplit('\\', 1)[0]+'\\user-password.py'
+    PYWIKI_FAMILY_FILE = basedir.rsplit('\\', 1)[0].rsplit('\\', 1)[
+        0]+'\\config\\my_family.py'
+    PYWIKI_USER_PASSWORD_FILE = basedir.rsplit('\\', 1)[0].rsplit('\\', 1)[
+        0]+'\\user-password.py'
     WIKI_USER_NAME = 'WikibaseAdmin'
     WIKI_BOT_USER_NAME = 'bot_user_1'
     WIKI_BOT_SECRET = 'cicb8eb65ktd956a0b43vauc4o63fpak'
@@ -43,8 +45,9 @@ class TestingConfig(Config):
     # SQLALCHEMY_DATABASE_URI = "mysql://{username}:{password}@{server}/testdb".format(
     #     username, password, server)
 
-    SQLALCHEMY_DATABASE_URI = "mysql://{username}:{password}@{server}/testdb".format(
-        username='root', password='password', server='MariaDB')
+    # SQLALCHEMY_DATABASE_URI = "mysql://{username}:{password}@{server}/testdb".format(
+    #     username='root', password='password', server='MariaDB')
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki_test"
 
     PRESERVE_CONTEXT_ON_EXCEPTION = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False

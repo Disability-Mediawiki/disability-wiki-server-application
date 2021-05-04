@@ -11,7 +11,7 @@ from flask import Flask
 from flask_restplus import Resource, Api, Namespace
 from flask import current_app
 
-from main.service.AuthenticationService import token_authenticate
+from application.main.service.AuthenticationService import token_authenticate
 
 api = Namespace('FILE_CONTROLLER', description='test controller initi')
 

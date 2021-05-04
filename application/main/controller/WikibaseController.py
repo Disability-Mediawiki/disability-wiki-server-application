@@ -8,7 +8,7 @@ from flask import request, jsonify
 from flask_restplus import Resource, Api, Namespace, reqparse
 from flask import current_app
 # from main.service.WikibaseApi import WikibaseApi
-from main.service.SearchItemService import SearchItemService
+from application.main.service.SearchItemService import SearchItemService
 
 api = Namespace('WIKIBASE_CONTROLLER', description='test controller initi')
 
