@@ -12,13 +12,14 @@ from flask import current_app
 
 from application.main.model.User import User
 from .. import db, flask_bcrypt
-api = Namespace('USER_CONTROLLER', description='User controller')
+
+from application.main.service.WikibaseApi import WikibaseApi
+from application.main.service.AuthService import AuthService
 
 
-@api.route('/')
 class UserService():
     def __init__(self):
-        "sdf"
+        self.auth_service = AuthService()
 
     def create_user(self):
         user = User(
@@ -29,3 +30,32 @@ class UserService():
         db.session.commit()
         auth_token = user.encode_auth_token(user.id)
         return auth_token
+
+    def register_user(self, username, email, password):
+        user = User(
+            user_name=username,
+            email=email,
+            password=password
+        )
+        db.session.add(user)
+        db.session.commit()
+        auth_token = user.encode_auth_token(user.id)
+        return auth_token
+
+    def get_user(self, email):
+        user = User.query.filter_by(
+            email=email
+        ).first()
+        return user
+
+    def login(self, user, password):
+        if self.auth_service.validate_password(
+            user.password, password
+        ):
+            auth_token = user.encode_auth_token(user.id)
+            if auth_token:
+                return auth_token
+            else:
+                return None
+        else:
+            return None
