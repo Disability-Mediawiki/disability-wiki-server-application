@@ -10,6 +10,8 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'my_precious_secret_key')
     DEBUG = False
     MAIN_PATH = basedir
+    UPLOAD_FOLDER = './resources/uploads'
+    RESULT_FOLDER = './resources/results'
     # PYWIKICONFIGURATION
     PYWIKI_FAMILY_FILE = basedir.rsplit('\\', 1)[0].rsplit('\\', 1)[
         0]+'\\config\\my_family.py'

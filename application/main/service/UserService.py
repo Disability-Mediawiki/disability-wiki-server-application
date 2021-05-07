@@ -48,6 +48,15 @@ class UserService():
         ).first()
         return user
 
+    def is_admin_user(self, id):
+        user = User.query.filter_by(
+            id=id
+        ).first()
+        if(user and user.admin):
+            return user
+        else:
+            return False
+
     def login(self, user, password):
         if self.auth_service.validate_password(
             user.password, password

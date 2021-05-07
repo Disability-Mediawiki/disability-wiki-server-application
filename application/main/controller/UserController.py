@@ -91,9 +91,10 @@ class LoginUserController(Resource):
 
                 if auth_token:
                     responseObject = {
-                        'status': 'success',
-                        'message': 'Successfully logged in.',
-                        'auth_token': auth_token.decode()
+                        'auth_token': auth_token.decode(),
+                        'token_type': 'Bearer',
+                        'sp': user.admin,
+                        'username': user.user_name
                     }
                     # return make_response(jsonify(responseObject)), 200
                     return responseObject, 200
