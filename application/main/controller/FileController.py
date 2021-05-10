@@ -92,7 +92,6 @@ class UploadFileController(Resource):
     # @api.doc(security='Bearer Auth')
     def post(self):
         """UPLOAD FILE"""
-        print('came here')
         if request.method == 'POST':
             # check if the post request has the file part
             if 'file' not in request.files:

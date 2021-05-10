@@ -48,6 +48,10 @@ class UserService():
         ).first()
         return user
 
+    def get_user_by_id(self, id):
+        user = User.query.get(id)
+        return user
+
     def is_admin_user(self, id):
         user = User.query.filter_by(
             id=id

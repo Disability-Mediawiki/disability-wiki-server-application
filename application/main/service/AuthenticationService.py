@@ -99,3 +99,33 @@ def token_authenticate_admin(f):
         # return f(*args, **kwargs)
 
     return decorated
+
+
+def get_user_by_auth():
+    auth_token = None
+
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+
+    if not auth_token:
+        return {'message': 'Token is missing.'}, 401
+
+    try:
+        payload = jwt.decode(
+            auth_token, current_app.config.get('SECRET_KEY'))
+        is_blacklisted_token = BlacklistToken.check_blacklist(auth_token)
+        if is_blacklisted_token:
+            return 'Token blacklisted. Please log in again.'
+        else:
+            # return payload['sub']
+            user_service = UserService()
+            user = user_service.get_user_by_id(payload['sub'])
+            if(user):
+                return user
+            else:
+                return {'message': 'Unauthorized'}, 401
+    except jwt.ExpiredSignatureError:
+        return 'Signature expired. Please log in again.'
+    except jwt.InvalidTokenError:
+        return 'Invalid token. Please log in again.'
