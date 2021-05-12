@@ -11,9 +11,12 @@ class Config:
     DEBUG = False
     MAIN_PATH = basedir
     UPLOAD_FOLDER = './resources/uploads'
+    ORIGINAL_FILE_FOLDER = basedir.rsplit('\\', 1)[0].rsplit('\\', 1)[
+        0]+'\\resources\\uploads'
     RESULT_FOLDER = './resources/classified/result'
     UPLOAD_WIKIEDIT_REQUEST_FOLDER = './resources/classified/requested'
     UPLOAD_COMPLETED_FOLDER = './resources/classified/completed'
+
     # PYWIKICONFIGURATION
     PYWIKI_FAMILY_FILE = basedir.rsplit('\\', 1)[0].rsplit('\\', 1)[
         0]+'\\config\\my_family.py'

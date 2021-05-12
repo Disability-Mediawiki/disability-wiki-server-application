@@ -20,17 +20,17 @@ from werkzeug.utils import secure_filename
 api = Namespace('FILE_UPLOAD_REQUEST_CONTROLLER',
                 description='Handle request of upload edits to Wikibase')
 
-parser_ = None
-parser_ = api.parser()
-# parser_.add_argument('id[]', type=int, action='append')
-# request.args.getlist('id[]')
-parser_.add_argument('file_name', type=str,
-                     help='File name')
-
 
 @api.route('/request_wiki_edit')
-@api.doc(security='Bearer Auth', parser=parser_)
+@api.doc(security='Bearer Auth')
 class EditWikiRequestController(Resource):
+    parser_ = None
+    parser_ = api.parser()
+    # parser_.add_argument('id[]', type=int, action='append')
+    # request.args.getlist('id[]')
+    parser_.add_argument('file_name', type=str,
+                         help='File name')
+
     def __init__(self, *args, **kwargs):
         self.log = logging.getLogger(__name__)
         parser = reqparse.RequestParser()
@@ -38,8 +38,10 @@ class EditWikiRequestController(Resource):
                             help='File name is required', required=True)
         self.req_parser = parser
         self.edit_request_service = WikiEditRequestService()
+        super(EditWikiRequestController, self).__init__(*args, **kwargs)
 
     @token_authenticate
+    @api.doc(parser=parser_, validate=True)
     def get(self):
         args = self.req_parser.parse_args(strict=True)
         if(args.file_name):
