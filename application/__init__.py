@@ -15,6 +15,7 @@ from application.main.controller.FileController import api as file_ns
 from application.main.controller.WikibaseController import api as wikibase_api_ns
 from application.main.controller.UserController import api as user_api_ns
 from application.main.controller.EditWikiRequestController import api as request_wiki_edit_api_ns
+from application.main.controller.GlssaryController import api as glossary_api_ns
 from application.main import create_app, db
 
 # SQLALCHEMY
@@ -48,6 +49,7 @@ api.add_namespace(file_ns, path='/file')
 api.add_namespace(wikibase_api_ns, path='/wikibase')
 api.add_namespace(user_api_ns, path='/user')
 api.add_namespace(request_wiki_edit_api_ns, path='/request')
+api.add_namespace(glossary_api_ns, path='/glossary')
 
 
 # app = create_app('dev')

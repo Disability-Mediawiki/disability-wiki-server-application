@@ -10,7 +10,7 @@ from sqlalchemy import Table, Column, Integer, ForeignKey
 
 
 class UploadRequest(db.Model):
-    """ User Model for storing user related details """
+    """ Upload Request Model """
     __tablename__ = "upload_request"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

@@ -111,6 +111,7 @@ class UploadFileController(Resource):
                 return 'No selected file'
             if file and self.allowed_file(file.filename):
                 filename = secure_filename(file.filename)
+
                 file.save(os.path.join(
                     current_app.config['UPLOAD_FOLDER'], filename))
                 # file.save(os.path.join('./resources/uploads', filename))
