@@ -7,7 +7,9 @@ import os
 
 import pandas as pd
 from application.main.service.AuthenticationService import (
-    token_authenticate, token_authenticate_admin)
+    token_authenticate, token_authenticate_admin, get_user_by_auth)
+from application.main.service.FileService import FileService
+from application.main.service.PdfService import PdfService
 from flask import (Flask, current_app, jsonify, make_response, request,
                    send_file, send_from_directory)
 from flask_cors import cross_origin
@@ -17,7 +19,7 @@ from flask_restplus import Api, Namespace, Resource
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 
-api = Namespace('FILE_CONTROLLER', description='test controller initi')
+api = Namespace('FILE_CONTROLLER', description='File operations')
 
 
 # @api.route('/download/<file_name>')
@@ -63,7 +65,7 @@ class DownloadExtractionController(Resource):
                         colIndex += 1
 
                     extraction_results.append(
-                        {'tag': tags, 'paragraph': row[0]})
+                        {'id': line_count, 'key': line_count, 'tag': tags, 'paragraph': row[0]})
                 line_count += 1
 
             print(f'Processed {line_count} lines.')
@@ -79,12 +81,61 @@ class DownloadExtractionController(Resource):
     #     # return json.dumps(extraction_results), 200
 
 
+@api.route('/get-all-document', methods=['GET'])
+@api.doc(security='Bearer Auth')
+class GetDocumentListController(Resource):
+    def __init__(self, *args, **kwargs):
+        self.log = logging.getLogger(__name__)
+        self.file_service = FileService()
+        super(GetDocumentListController, self).__init__(*args, **kwargs)
+
+    def obj_dict(self, obj):
+        return obj.__dict__
+
+    def get(self):
+        """GET ALL DOCUMENTS"""
+        user = get_user_by_auth()
+        if(user):
+            document_list = self.file_service.get_all_document(user)
+            if(document_list):
+                # json_res = json.dumps([ob.__dict__ for ob in document_list])
+                # return json.dumps(document_list, default=str)
+                return jsonify(document_list)
+            else:
+                return "No documents found", 404
+        else:
+            return "invalid token", 403
+
+
+@api.route('/get-pending-document', methods=['GET'])
+@api.doc(security='Bearer Auth')
+class GetPendingDocumentListController(Resource):
+    def __init__(self, *args, **kwargs):
+        self.log = logging.getLogger(__name__)
+        self.file_service = FileService()
+        super(GetPendingDocumentListController, self).__init__(*args, **kwargs)
+
+    def get(self):
+        """GET ALL PENDING DOCUMENTS"""
+        user = get_user_by_auth()
+        if(user):
+            document_list = self.file_service.get_all_pending_document(user)
+            if(document_list):
+                # return json.dumps(document_list, default=self.obj_dict)
+                return jsonify(document_list)
+            else:
+                return "No documents found", 404
+        else:
+            return "invalid token", 403
+
+
 @api.route('/upload')
 @api.doc(security='Bearer Auth')
 class UploadFileController(Resource):
 
     def __init__(self, *args, **kwargs):
         self.log = logging.getLogger(__name__)
+        self.file_service = FileService()
         self.ALLOWED_EXTENSIONS = set(
             ['txt', 'pdf', 'png',  'jpg', 'jpeg', 'gif'])
         super(UploadFileController, self).__init__(*args, **kwargs)
@@ -93,28 +144,32 @@ class UploadFileController(Resource):
         return '.' in filename and \
                filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS
 
-    # @api.doc(security='Bearer Auth')
-
+    @api.doc(security='Bearer Auth')
+    @token_authenticate
     def post(self):
         """UPLOAD FILE"""
         if request.method == 'POST':
-            # check if the post request has the file part
+
             if 'file' not in request.files:
                 self.log.error(
                     'No file'
                 )
                 return "no file"
             file = request.files['file']
-            # if user does not select file, browser also
-            # submit a empty part without filename
             if file.filename == '':
                 return 'No selected file'
-            if file and self.allowed_file(file.filename):
-                filename = secure_filename(file.filename)
 
-                file.save(os.path.join(
-                    current_app.config['UPLOAD_FOLDER'], filename))
-                # file.save(os.path.join('./resources/uploads', filename))
+            if file and self.allowed_file(file.filename):
+                # filename = secure_filename(file.filename)
+
+                extention = secure_filename(file.filename.split('.')[1])
+                filename = request.form.get(
+                    'document_name', None).rstrip()+extention
+                country = request.form.get(
+                    'country', None).rstrip()
+
+                user = get_user_by_auth()
+                self.file_service.upload_file(filename, country, file, user)
                 return {'filename': filename, "status": "success"}, 200
             else:
                 return {"data": "not supported file format"}
@@ -186,3 +241,54 @@ class ShowFileController(Resource):
 
         # else:
         #     return "File format not supported", 415
+
+
+@api.route('/download-document', methods=['GET', 'POST'])
+class DownloadDocumentController(Resource):
+
+    def __init__(self, *args, **kwargs):
+        self.log = logging.getLogger(__name__)
+        parser = reqparse.RequestParser()
+        parser.add_argument("file_name", type=str,
+                            help='File name', required=True)
+        self.req_parser = parser
+        self.ALLOWED_EXTENSIONS = set(
+            ['txt', 'pdf', 'png',  'jpg', 'jpeg', 'gif'])
+        super(DownloadDocumentController, self).__init__(*args, **kwargs)
+
+    def allowed_file(self, filename):
+        return '.' in filename and \
+               filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS
+
+    parser = None
+    parser = api.parser()
+    parser.add_argument('file_name', type=str, help='File name')
+
+    def get(self):
+        """DOWNLOAD PDF FILE"""
+        args = self.req_parser.parse_args(strict=True)
+        filename = args.get('file_name')
+        # //send_file // as_attachment = True
+        return send_from_directory(directory=current_app.config['ORIGINAL_FILE_FOLDER'], filename=filename, as_attachment=False)
+
+
+@api.route('/download-document-test', methods=['GET'])
+class TestDocumentController(Resource):
+
+    def __init__(self, *args, **kwargs):
+        self.log = logging.getLogger(__name__)
+        self.file_service = PdfService()
+        super(TestDocumentController, self).__init__(*args, **kwargs)
+
+    def allowed_file(self, filename):
+        return '.' in filename and \
+               filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS
+
+    parser = None
+    parser = api.parser()
+    parser.add_argument('file_name', type=str, help='File name')
+
+    def get(self):
+        """DOWNLOAD PDF FILE"""
+        self.file_service.test_highlight()
+        return "ok"

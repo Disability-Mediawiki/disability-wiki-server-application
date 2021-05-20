@@ -20,7 +20,7 @@ class Synonym(db.Model):
 
     glossary_tag_id = Column(Integer, ForeignKey('glossary_tag.id'))
 
-    glssary_tag = relationship("GlssaryTag", back_populates="synonyms")
+    glossary_tag = relationship("GlossaryTag", back_populates="synonyms")
 
     def __init__(self, label, glossary_tag_id):
         self.label = label

@@ -7,10 +7,12 @@ from werkzeug.utils import secure_filename
 import logging
 from flask import Flask, request, jsonify, current_app
 from flask_restplus import Resource, Api, Namespace
-from flask import current_app
 
+from .. import db
 from application.main.model.User import User
-from .. import db, flask_bcrypt
+from application.main.model.Document import Document
+from application.main.model.Enum.DocumentStatus import DocumentStatus
+
 
 from application.main.service.WikibaseApi import WikibaseApi
 from application.main.service.AuthService import AuthService
@@ -32,10 +34,57 @@ class FileService():
             else:
                 return False
         except IOError:
-            file.close()
             print("File not accessible")
             return False
         # os.rename("path/to/current/file.foo",
         #           "path/to/new/destination/for/file.foo")
         # shutil.move("path/to/current/file.foo", "path/to/new/destination/for/file.foo")
         # os.replace("path/to/current/file.foo", "path/to/new/destination/for/file.foo")
+
+    def upload_file(self, filename, country, file, user):
+
+        document = Document(
+            document_name=filename,
+            user_id=user.id,
+            status=DocumentStatus.Processing
+        )
+        db.session.add(document)
+        db.session.commit()
+        file.save(os.path.join(
+            current_app.config['UPLOAD_FOLDER'], filename))
+
+    def get_document(self, filename, user):
+        document = Document.query.filter_by(
+            document_name=filename,
+            user_id=user.id
+        ).first()
+        if(document):
+            return document
+        else:
+            return False
+
+    def get_all_document(self, user):
+        document_list = db.session.query(Document).\
+            join(User, Document.user_id == User.id).all()
+        if(len(document_list) > 0):
+            result = []
+            for doc in document_list:
+                result.append({'id': doc.id, 'name': doc.document_name,
+                              'status': doc.status.value, 'date': doc.uploaded_on, 'key': doc.id})
+            return result
+        else:
+            return False
+
+    def get_all_pending_document(self, user):
+        document_list = db.session.query(Document).\
+            join(User, Document.user_id == User.id).\
+            filter(Document.status == DocumentStatus.Processing and Document.status ==
+                   DocumentStatus.Classified).all()
+        if(len(document_list) > 0):
+            result = []
+            for doc in document_list:
+                result.append({'id': doc.id, 'name': doc.document_name,
+                              'status': doc.status.value, 'date': doc.uploaded_on, 'key': doc.id})
+            return result
+        else:
+            return False

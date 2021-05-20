@@ -36,6 +36,21 @@ class GetAllGlossaryController(Resource):
         return glossary_list, 200
 
 
+@api.route('/get-all-flat', methods=['GET'])
+@api.doc(security='Bearer Auth')
+class GetAllFlatGlossaryController(Resource):
+
+    def __init__(self, *args, **kwargs):
+        self.log = logging.getLogger(__name__)
+        self.glossary_service = GlossaryService()
+        super(GetAllFlatGlossaryController, self).__init__(*args, **kwargs)
+
+    def get(self):
+        """GET ALL GLOSSARY AND SYNONYMS-FLAT LIST"""
+        glossary_list = self.glossary_service.get_all_as_flat_list()
+        return glossary_list, 200
+
+
 @api.route('/create')
 class CreateGlossaryController(Resource):
 

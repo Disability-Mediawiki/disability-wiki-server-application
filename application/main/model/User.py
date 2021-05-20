@@ -5,6 +5,8 @@ from flask import current_app
 # from app import app, db, bcrypt
 from .. import db, flask_bcrypt as bcrypt
 from sqlalchemy.orm import relationship
+from . import TrainingData
+
 # basic model
 
 
@@ -21,7 +23,7 @@ class User(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_name = db.Column(db.String(255), unique=True, nullable=False)
-    email = db.Column(db.String(255), unique=True, nullable=False)
+    email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password = db.Column(db.String(255), nullable=False)
     registered_on = db.Column(db.DateTime, nullable=False)
     admin = db.Column(db.Boolean, nullable=False, default=False)
