@@ -10,7 +10,7 @@ from flask import current_app
 # from main.service.WikibaseApi import WikibaseApi
 from application.main.service.SearchItemService import SearchItemService
 
-api = Namespace('WIKIBASE_CONTROLLER', description='test controller initi')
+api = Namespace('WIKIBASE_CONTROLLER', description='Wikibase Api Operations')
 
 
 @api.route('/search')

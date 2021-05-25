@@ -21,6 +21,8 @@ class Document(db.Model):
 
     country_id = Column(Integer, ForeignKey('country.id'),  nullable=True)
     country = relationship("Country", back_populates="documents")
+    classification_result = relationship(
+        "ClassificationResult", back_populates="document")
 
     def __init__(self, document_name, user_id, status, country_id=None):
         self.document_name = document_name

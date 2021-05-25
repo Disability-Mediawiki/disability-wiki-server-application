@@ -38,11 +38,12 @@ class GlossaryService():
         glossary_tag_list = []
         for glossary_tag in glossary_list:
             glossary_tag_list.append(
-                {'label': glossary_tag.label, 'id': glossary_tag.id})
+                {'label': glossary_tag.label.capitalize(), 'id': glossary_tag.id})
 
         for synonym in synonym_list:
             glossary_tag_list.append(
-                {'id': synonym.id, 'label': synonym.label, 'glossary_tag_id': synonym.glossary_tag_id})
+                {'id': synonym.id, 'label': synonym.label.capitalize(), 'glossary_tag_id': synonym.glossary_tag_id})
+        glossary_tag_list.sort(key=lambda x: x.get('label'))
         return glossary_tag_list
 
     def create(self, glossaries):

@@ -164,7 +164,7 @@ class UploadFileController(Resource):
 
                 extention = secure_filename(file.filename.split('.')[1])
                 filename = request.form.get(
-                    'document_name', None).rstrip()+extention
+                    'document_name', None).rstrip()+"."+extention
                 country = request.form.get(
                     'country', None).rstrip()
 
@@ -200,7 +200,8 @@ class ShowFileController(Resource):
     def get(self):
         """DOWNLOAD PDF FILE"""
         # args = self.req_parser.parse_args(strict=True)
-        filename = 'CRDP.pdf'
+        # filename = args.get('file_name')
+        filename = 'CRPD.pdf'
         # current_app.config['UPLOAD_FOLDER']
         # uploads = 'F:\\Internship York\\Repo\\Disability-Media-Wiki\\flask\\server-flask-restplus\\resources\\uploads'
         return send_from_directory(directory=current_app.config['ORIGINAL_FILE_FOLDER'], filename=filename)
@@ -269,7 +270,7 @@ class DownloadDocumentController(Resource):
         args = self.req_parser.parse_args(strict=True)
         filename = args.get('file_name')
         # //send_file // as_attachment = True
-        return send_from_directory(directory=current_app.config['ORIGINAL_FILE_FOLDER'], filename=filename, as_attachment=False)
+        return send_from_directory(directory=current_app.config['ORIGINAL_FILE_FOLDER'], filename=filename)
 
 
 @api.route('/download-document-test', methods=['GET'])

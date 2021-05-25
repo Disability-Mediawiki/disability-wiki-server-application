@@ -39,8 +39,8 @@ class UserService():
         )
         db.session.add(user)
         db.session.commit()
-        auth_token = user.encode_auth_token(user.id)
-        return auth_token
+        # auth_token = user.encode_auth_token(user.id)
+        return user
 
     def get_user(self, email):
         user = User.query.filter_by(

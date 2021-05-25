@@ -45,13 +45,15 @@ class UserController(Resource):
         # The image is retrieved as a file
         args = self.req_parser.parse_args(strict=True)
         try:
-            auth_token = self.user_service.register_user(
+            user = self.user_service.register_user(
                 args.get('username'), args.get('email'), args.get('password'))
-            if auth_token:
+            if user:
+                auth_token = user.encode_auth_token(user.id)
                 responseObject = {
-                    'status': 'success',
-                    'message': 'Successfully logged in.',
-                    'auth_token': auth_token.decode()
+                    'auth_token': auth_token.decode(),
+                    'token_type': 'Bearer',
+                    'sp': user.admin,
+                    'username': user.user_name
                 }
                 return responseObject, 201
         except Exception as e:
@@ -80,10 +82,8 @@ class LoginUserController(Resource):
     @api.expect(_user, validate=True)
     def post(self):
         """LOGIN-USER"""
-        # The image is retrieved as a file
         args = self.req_parser.parse_args(strict=True)
         try:
-            # fetch the user data
             user = self.user_service.get_user(args.get('email'))
             if user:
                 auth_token = self.user_service.login(
@@ -96,7 +96,6 @@ class LoginUserController(Resource):
                         'sp': user.admin,
                         'username': user.user_name
                     }
-                    # return make_response(jsonify(responseObject)), 200
                     return responseObject, 200
                 else:
                     responseObject = {
