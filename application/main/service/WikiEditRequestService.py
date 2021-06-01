@@ -19,7 +19,7 @@ from application.main.model.UploadRequest import UploadRequest
 from application.main.service.FileService import FileService
 import sys
 import traceback
-from application.main.service.LoggerService import LoggerService
+from application.main.service.DebuggWriter import DebuggWriter
 from .. import db
 
 
@@ -28,7 +28,7 @@ class WikiEditRequestService():
         self.log = logging.getLogger(__name__)
         self.file_service = FileService()
         self.wikibase_api = WikibaseApi()
-        self.logger_service = LoggerService()
+        self.logger_service = DebuggWriter()
 
     def create_upload_request(self, file_name, user):
         if(self.file_service.move_file_wiki_upload_request(file_name)):
