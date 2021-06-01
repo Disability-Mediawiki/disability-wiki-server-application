@@ -16,7 +16,6 @@ from flask_restplus import Api, Namespace, Resource, marshal_with, fields
 from application.main.dto.GlossaryDto import GlossaryDto
 from application.main.service.GlossaryService import GlossaryService
 
-# api = Namespace('GLOSSARY_CONTROLLER', description='Glossary operations')
 api = GlossaryDto.api
 _glossary = GlossaryDto.glossary
 
@@ -62,10 +61,6 @@ class CreateGlossaryController(Resource):
                             type=dict, help='Glossary is required', action='append', required=True)
         self.req_parser = parser
         super(CreateGlossaryController, self).__init__(*args, **kwargs)
-
-    # parser_ = api.parser()
-    # parser_.add_argument('glossary[{}]', type=[_glossary], action='append')
-    # @api.doc(parser=parser_, validate=True)
 
     @api.expect(_glossary, validate=True)
     def post(self):

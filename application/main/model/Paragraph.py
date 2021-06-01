@@ -25,7 +25,7 @@ class Paragraph(db.Model):
     classification_result = relationship(
         "ClassificationResult", back_populates="paragraphs")
     paragraph_tags = relationship(
-        "ParagraphTag", back_populates="paragraph")
+        "ParagraphTag", cascade="all,delete", back_populates="paragraph")
 
     def __init__(self, label, paragraph,  classification_result_id, document_id):
         self.label = label

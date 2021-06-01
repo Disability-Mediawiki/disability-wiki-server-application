@@ -109,7 +109,7 @@ class LoginUserController(Resource):
                     'status': 'fail',
                     'message': 'User does not exist.'
                 }
-                return responseObject, 404
+                return responseObject, 401
         except Exception as e:
             print(e)
             responseObject = {

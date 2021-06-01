@@ -13,21 +13,59 @@ from application.main.model.Paragraph import Paragraph
 from application.main.model.ParagraphTag import ParagraphTag
 from application.main.model.Document import Document
 from application.main.model.User import User
+from application.main.service.WikiEditRequestService import WikiEditRequestService
 from application.main.model.Enum.ClassificationResultStatus import ClassificationResultStatus
 
 
 class DocumentClassificationService():
     def __init__(self):
-        ""
+        self.wiki_edit_request_service = WikiEditRequestService()
+
+    def get_all_paragraphs_and_tags_by_user(self, document_name, document_id, user):
+        paragraph_list = db.session.query(Paragraph).\
+            join(ClassificationResult, ClassificationResult.id == Paragraph.classification_result_id).\
+            join(Document, Document.id == ClassificationResult.document_id).\
+            join(User, User.id == Document.user_id).\
+            where(Document.document_name == document_name).\
+            where(User.id == user.id).\
+            where(Document.id == document_id).\
+            all()
+        # list = {x.id: x for x in paragraph_list}
+        list = []
+        for paragraph in paragraph_list:
+            tags = []
+            for tag in paragraph.paragraph_tags:
+                tags.append({'text': tag.label, 'id': tag.id})
+            list.append(
+                {'classification_id': paragraph.classification_result_id, 'id': paragraph.id, 'key': str(paragraph.id)+"_"+str(paragraph.classification_result_id), 'tag': tags,
+                 'paragraph': paragraph.paragraph})
+
+        return list
 
     def get_all_paragraphs_and_tags(self, document_name):
         paragraph_list = db.session.query(Paragraph).\
-            join(Document, Document.id == Paragraph.document_id).\
+            join(ClassificationResult, ClassificationResult.id == Paragraph.classification_result_id).\
+            join(Document, Document.id == ClassificationResult.document_id).\
+            where(Document.document_name == document_name).\
             all()
-        b = dict(paragraph_list)
-        result = json.dumps(
-            [[ob.__dict__ for ob in lst.paragraph_tags] for lst in b])
-        return result
+        # list = {x.id: x for x in paragraph_list}
+        list = []
+        for paragraph in paragraph_list:
+            tags = []
+            for tag in paragraph.paragraph_tags:
+                tags.append({'text': tag.label, 'id': tag.id})
+            list.append(
+                {'classification_id': paragraph.classification_result_id, 'id': paragraph.id, 'key': str(paragraph.id)+"_"+str(paragraph.classification_result_id), 'tag': tags,
+                    'paragraph': paragraph.paragraph})
+
+        return list
+
+    def is_document_classification(self, document):
+        classification_result = db.session.query(ClassificationResult).\
+            join(Document, Document.id == ClassificationResult.document_id).\
+            where(Document.id == document.id).\
+            one()
+        return classification_result
 
     def save_classification_result(self, document, paragraphs):
 
@@ -37,6 +75,7 @@ class DocumentClassificationService():
         )
         db.session.add(classification)
         db.session.flush()
+        # db.session.rollback();
         count = 1
         for paragraph in paragraphs:
             pr = Paragraph(
@@ -54,6 +93,49 @@ class DocumentClassificationService():
                 )
                 db.session.add(p_tag)
             count += 1
+
+        db.session.commit()
+        return True
+
+    def update_classification_result(self, user, document, table_edit_log):
+
+        classification_result = db.session.query(ClassificationResult).\
+            join(Document, Document.id == ClassificationResult.document_id).\
+            where(Document.document_name == document.document_name).\
+            where(User.id == user.id).\
+            first()
+        for edit in table_edit_log:
+            if(edit.get('type') == 'delete_tag'):
+                tag = edit.get('data')
+                paragraph_id = edit.get('row_id')
+                glossary_tag = db.session.query(ParagraphTag).\
+                    join(Paragraph, Paragraph.id == ParagraphTag.paragraph_id).\
+                    join(ClassificationResult, ClassificationResult.id == Paragraph.classification_result_id).\
+                    where(ClassificationResult.id == classification_result.id).\
+                    where(Paragraph.id == paragraph_id).\
+                    where(ParagraphTag.label == tag).\
+                    first()
+                if(glossary_tag):
+                    db.session.delete(glossary_tag)
+
+            elif(edit.get('type') == 'add_tag'):
+                tag = edit.get('data')
+                paragraph_id = edit.get('row_id')
+                new_tag = ParagraphTag(
+                    label=tag,
+                    paragraph_id=paragraph_id
+                )
+                db.session.add(new_tag)
+
+            elif(edit.get('type') == 'delete_row'):
+                paragraph_id = edit.get('row_id')
+                paragraph_obj = db.session.query(Paragraph).\
+                    join(ClassificationResult, ClassificationResult.id == Paragraph.classification_result_id).\
+                    where(ClassificationResult.id == classification_result.id).\
+                    where(Paragraph.id == paragraph_id).\
+                    first()
+                if(paragraph_obj):
+                    db.session.delete(paragraph_obj)
 
         db.session.commit()
         return True

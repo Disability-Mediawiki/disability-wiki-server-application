@@ -1,8 +1,5 @@
 import os
 
-# uncomment the line below for postgres database url from environment variable
-# postgres_local_base = os.environ['DATABASE_URL']
-
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -11,6 +8,8 @@ class Config:
     DEBUG = False
     MAIN_PATH = basedir
     UPLOAD_FOLDER = './resources/uploads'
+    TEMP_DOC_FOLDER = basedir.rsplit('\\', 1)[0].rsplit('\\', 1)[
+        0]+'\\resources\\temp_doc'
     ORIGINAL_FILE_FOLDER = basedir.rsplit('\\', 1)[0].rsplit('\\', 1)[
         0]+'\\resources\\uploads'
     RESULT_FOLDER = './resources/classified/result'
@@ -30,40 +29,44 @@ class Config:
     WIKI_PROTOCOL = 'http'
     WIKI_API_URI = 'http://localhost:8181/w/api.php'
 
+    # ERROR LOG
+    ERROR_LOG_FILE = './resources/error_log/debug_error.txt'
+
+    # WIKIBASE PROPERTIES
+    DOCUMENT_CLASS_QID = 'Q76'
+    PARAGRAPH_CLASS_QID = 'Q79'
+    TOPIC_CLASS_QID = 'Q'
+    INSTACE_OF_PROPERTY_PID = 'P31'
+    DOCUMENT_REFERENCE_URI_PROPERTY_PID = 'P32'
+    PART_OF_DOCUMENT_PROPERTY_PID = 'P34'
+    HAS_TEXT_PROPERTY_PID = 'P24'
+    HAS_TOPIC_PROPERTY_PID = 'P4'
+    HAS_PARAGRAPH_PROPERTY_PID = 'P33'
+    MENTIONED_IN_PROPERTY_PID = 'P26'
+
 
 class DevelopmentConfig(Config):
-    # uncomment the line below to use postgres
-    # SQLALCHEMY_DATABASE_URI = postgres_local_base
+
     DEBUG = True
-    # SQLALCHEMY_DATABASE_URI = 'sqlite:///' + \
-    #     os.path.join(basedir, 'flask_boilerplate_main.db')
-    # SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://{username}:{password}@{server}/dis_wiki".format(
-    #     username='root', password='password', server='MariaDB')
     SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki"
+    SQLALCHEMY_ECHO = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
 
 class TestingConfig(Config):
     DEBUG = True
     TESTING = True
-    # SQLALCHEMY_DATABASE_URI = 'sqlite:///' + \
-    #     os.path.join(basedir, 'flask_boilerplate_test.db')
-
-    # SQLALCHEMY_DATABASE_URI = "mysql://{username}:{password}@{server}/testdb".format(
-    #     username, password, server)
-
-    # SQLALCHEMY_DATABASE_URI = "mysql://{username}:{password}@{server}/testdb".format(
-    #     username='root', password='password', server='MariaDB')
     SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki_test"
-
+    SQLALCHEMY_ECHO = True
     PRESERVE_CONTEXT_ON_EXCEPTION = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 class ProductionConfig(Config):
     DEBUG = False
-    # uncomment the line below to use postgres
-    # SQLALCHEMY_DATABASE_URI = postgres_local_base
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki"
+    SQLALCHEMY_ECHO = False
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 config_by_name = dict(

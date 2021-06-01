@@ -32,6 +32,7 @@ class SparqlService():
         self.sparql = SPARQLWrapper(
             current_app.config.get('WIKI_SPARQL_END_POINT'))
         self.wikibase = pywikibot.Site("my", "my")
+        self.pywikibot = pywikibot
         self.wikibase_repo = self.wikibase.data_repository()
 
     def get_all_properties_of_item(self, qid):
@@ -50,46 +51,45 @@ class SparqlService():
         print(results)
         return results
 
+    # get items with sparql
+    def get_item_with_sparql(self, label):
+        query = """
+             select ?label ?s where
+                    {
+                      ?s ?p ?o.
+                      ?s rdfs:label ?label .
+                      FILTER(lang(?label)='fr' || lang(?label)='en')
+                      FILTER(?label = '""" + label + """'@en)
+    
+                    }
+             """
+        self.sparql.setQuery(query)
+        self.sparql.setReturnFormat(JSON)
+        results = self.sparql.query().convert()
+        item_qid = results['results']['bindings'][0]['s']['value'].split(
+            "/")[-1]
+        if(item_qid):
+            item = self.pywikibot.ItemPage(self.wikibase_repo, item_qid)
+            return item
+        else:
+            return False
+    # Searches a concept based on its label on Tripple store
 
-"""
-SELECT ?wdLabel ?ps_Label ?wdpqLabel ?pq_Label {
-  VALUES (?company) {(wd:Q95)}
-  
-  ?company ?p ?statement .
-  ?statement ?ps ?ps_ .
-  
-  ?wd wikibase:claim ?p.
-  ?wd wikibase:statementProperty ?ps.
-  
-  OPTIONAL {
-  ?statement ?pq ?pq_ .
-  ?wdpq wikibase:qualifier ?pq .
-  }
-  
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en" }
-} ORDER BY ?wd ?statement ?ps_
-
-//
-
-SELECT ?a ?aLabel ?propLabel ?b ?bLabel
-WHERE
-{
-  ?item rdfs:label "Google"@en.
-  ?item ?a ?b.
-
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } 
-  ?prop wikibase:directClaim ?a .
-}
-
-//
-SELECT ?a ?aLabel ?propLabel ?b ?bLabel
-WHERE
-{
-#   ?item rdfs:label "Google"@en.
-  wd:Q95 ?a ?b.
-
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } 
-  ?prop wikibase:directClaim ?a .
-}
-
-"""
+    def search_wiki_item_sparql(self, label):
+        query = """
+             select ?label ?s where
+                    {
+                      ?s ?p ?o.
+                      ?s rdfs:label ?label .
+                      FILTER(lang(?label)='fr' || lang(?label)='en')
+                      FILTER(?label = '""" + label + """'@en)
+    
+                    }
+             """
+        self.sparql.setQuery(query)
+        self.sparql.setReturnFormat(JSON)
+        results = self.sparql.query().convert()
+        if (len(results['results']['bindings']) > 0):
+            return True
+        else:
+            return False

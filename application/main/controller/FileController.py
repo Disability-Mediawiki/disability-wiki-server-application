@@ -15,14 +15,12 @@ from flask import (Flask, current_app, jsonify, make_response, request,
 from flask_cors import cross_origin
 from flask_restful import Resource, reqparse
 from flask_restplus import Api, Namespace, Resource
-# from werkzeug import FileStorage,datastructures
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 
 api = Namespace('FILE_CONTROLLER', description='File operations')
 
 
-# @api.route('/download/<file_name>')
 @api.route('/download')
 @api.doc(security='Bearer Auth')
 class DownloadExtractionController(Resource):
@@ -70,15 +68,6 @@ class DownloadExtractionController(Resource):
 
             print(f'Processed {line_count} lines.')
         return extraction_results, 200
-        # return json.dumps(extraction_results), 200
-
-    # def get(self, file_name):
-    #     """GET ALL FILE"""
-    #     extraction_results = []
-    #     data = pd.ExcelFile(os.path.join(
-    #         current_app.config['RESULT_FOLDER'], file_name))
-    #     return json.dumps(data), 200
-    #     # return json.dumps(extraction_results), 200
 
 
 @api.route('/get-all-document', methods=['GET'])
@@ -98,8 +87,6 @@ class GetDocumentListController(Resource):
         if(user):
             document_list = self.file_service.get_all_document(user)
             if(document_list):
-                # json_res = json.dumps([ob.__dict__ for ob in document_list])
-                # return json.dumps(document_list, default=str)
                 return jsonify(document_list)
             else:
                 return "No documents found", 404
@@ -121,7 +108,6 @@ class GetPendingDocumentListController(Resource):
         if(user):
             document_list = self.file_service.get_all_pending_document(user)
             if(document_list):
-                # return json.dumps(document_list, default=self.obj_dict)
                 return jsonify(document_list)
             else:
                 return "No documents found", 404
@@ -154,10 +140,10 @@ class UploadFileController(Resource):
                 self.log.error(
                     'No file'
                 )
-                return "no file"
+                return "no file", 400
             file = request.files['file']
             if file.filename == '':
-                return 'No selected file'
+                return 'No selected file', 400
 
             if file and self.allowed_file(file.filename):
                 # filename = secure_filename(file.filename)
@@ -167,12 +153,22 @@ class UploadFileController(Resource):
                     'document_name', None).rstrip()+"."+extention
                 country = request.form.get(
                     'country', None).rstrip()
-
-                user = get_user_by_auth()
-                self.file_service.upload_file(filename, country, file, user)
-                return {'filename': filename, "status": "success"}, 200
+                language = request.form.get(
+                    'language', None).rstrip()
+                description = request.form.get(
+                    'description', None).rstrip()
+                if(filename and language and description):
+                    user = get_user_by_auth()
+                    if(user):
+                        self.file_service.upload_file(
+                            filename, language, description, country, file, user)
+                        return {'filename': filename, "status": "success"}, 200
+                    else:
+                        return 'Unauthorized', 401
+                else:
+                    return 'Bad request', 400
             else:
-                return {"data": "not supported file format"}
+                return 'not supported file format', 400
 
 
 @api.route('/showfile', methods=['GET', 'POST'])
@@ -199,49 +195,12 @@ class ShowFileController(Resource):
     # @api.doc(parser=parser, validate=True)
     def get(self):
         """DOWNLOAD PDF FILE"""
-        # args = self.req_parser.parse_args(strict=True)
-        # filename = args.get('file_name')
-        filename = 'CRPD.pdf'
-        # current_app.config['UPLOAD_FOLDER']
-        # uploads = 'F:\\Internship York\\Repo\\Disability-Media-Wiki\\flask\\server-flask-restplus\\resources\\uploads'
-        return send_from_directory(directory=current_app.config['ORIGINAL_FILE_FOLDER'], filename=filename)
-
-        # return send_file(open(os.path.join(current_app.config['UPLOAD_FOLDER'], filename), 'rb'), attachment_filename='pdffile.pdf')
-
-        # with open(os.path.join(current_app.config['UPLOAD_FOLDER'], filename), 'rb')as f:
-        #     response = make_response(f)
-        #     response.headers.set('Content-Disposition',
-        #                          'attachment', filename='test.pdf')
-        #     response.headers.set('Content-Type', 'application/pdf')
-        #     return response
-
-        # with open(os.path.join(current_app.config['UPLOAD_FOLDER'], filename)) as f:
-        # file_content = f.read()
-        # response = make_response(file_content, 200)
-        # response.headers['Content-type'] = 'application/pdf'
-        # response.headers['Content-disposition'] = ...
-
-        # return send_file(
-        #     f,
-        #     as_attachment=True,
-        #     attachment_filename='annotated.pdf',
-        #     mimetype='application/pdf')
-
-        # return send_from_directory(directory=current_app.config['UPLOAD_FOLDER'],
-        #                            filename=filename,
-        #                            mimetype='application/pdf')
-
-        # try:
-        #     return send_file(os.path.join(current_app.config['UPLOAD_FOLDER'], filename), attachment_filename='ohhey.pdf')
-        # except Exception as e:
-        #     return str(e)
-        # if args.file_name and self.allowed_file(args.file_name):
-
-        # with open(os.path.join(current_app.config['UPLOAD_FOLDER'], filename), 'rb') as static_file:
-        #     return send_file(static_file, attachment_filename='file.pdf')
-
-        # else:
-        #     return "File format not supported", 415
+        args = self.req_parser.parse_args(strict=True)
+        filename = args.get('file_name')
+        if(filename):
+            return send_from_directory(directory=current_app.config['ORIGINAL_FILE_FOLDER'], filename=filename)
+        else:
+            return 'Bad request', 400
 
 
 @api.route('/download-document', methods=['GET', 'POST'])
@@ -269,8 +228,43 @@ class DownloadDocumentController(Resource):
         """DOWNLOAD PDF FILE"""
         args = self.req_parser.parse_args(strict=True)
         filename = args.get('file_name')
-        # //send_file // as_attachment = True
-        return send_from_directory(directory=current_app.config['ORIGINAL_FILE_FOLDER'], filename=filename)
+        if(filename):
+            # //send_file // as_attachment = True
+            return send_from_directory(directory=current_app.config['ORIGINAL_FILE_FOLDER'], filename=filename)
+        else:
+            return 'Bad request', 400
+
+
+@api.route('/text-document-search', methods=['GET'])
+class ShowDocumentSearch(Resource):
+
+    def __init__(self, *args, **kwargs):
+        self.log = logging.getLogger(__name__)
+        self.file_service = PdfService()
+        parser = reqparse.RequestParser()
+        parser.add_argument("file_name", type=str,
+                            help='File name', required=True)
+        parser.add_argument("text", type=str,
+                            help='Paragraph text', required=True)
+        self.req_parser = parser
+        super(ShowDocumentSearch, self).__init__(*args, **kwargs)
+
+    def allowed_file(self, filename):
+        return '.' in filename and \
+               filename.rsplit('.', 1)[1].lower() in self.ALLOWED_EXTENSIONS
+
+    parser_ = None
+    parser_ = api.parser()
+    parser_.add_argument('file_name', type=str, help='File name')
+    parser_.add_argument('text', type=str, help='Paragraph text')
+
+    @api.doc(parser=parser_, validate=True)
+    def get(self):
+        """SEARCH TEXT IN DOCUMENT"""
+        args = self.req_parser.parse_args(strict=True)
+        file_name = args.get('file_name')
+        text = args.get('text')
+        return self.file_service.text_search_and_highligh(file_name, text)
 
 
 @api.route('/download-document-test', methods=['GET'])

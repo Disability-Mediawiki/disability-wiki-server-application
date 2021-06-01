@@ -26,7 +26,10 @@ class ClassificationResult(db.Model):
     document = relationship("Document", back_populates="classification_result")
 
     paragraphs = relationship(
-        "Paragraph", back_populates="classification_result")
+        "Paragraph", cascade="all,delete", back_populates="classification_result")
+
+    upload_requests = relationship(
+        "UploadRequest", back_populates="classification_result")
 
     def __init__(self, document_id, status, updated_on=None):
 

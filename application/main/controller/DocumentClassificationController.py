@@ -29,11 +29,83 @@ class DownloadExtractionResultController(Resource):
 
     def __init__(self, *args, **kwargs):
         self.log = logging.getLogger(__name__)
+        _parser = reqparse.RequestParser()
+        self.classification_service = DocumentClassificationService()
+        _parser.add_argument("document_name", type=str,
+                             help='File name', required=True)
+        _parser.add_argument("document_id", type=int,
+                             help='Document id', required=True)
+        self.req_parser = _parser
+        super(DownloadExtractionResultController,
+              self).__init__(*args, **kwargs)
+
+    parser = None
+    parser = api.parser()
+    parser.add_argument('document_name', type=str,
+                        help='Document name is required')
+    parser.add_argument('document_id', type=str,
+                        help='Document ID is required')
+
+    @api.doc(parser=parser, validate=True)
+    @token_authenticate
+    def get(self):
+        """DOWNLOAD CLASSIFICATION RESULTS"""
+        args = self.req_parser.parse_args(strict=True)
+        user = get_user_by_auth()
+        if(user):
+            doc_name = args.document_name
+            doc_id = args.document_id
+            result = self.classification_service.get_all_paragraphs_and_tags_by_user(
+                doc_name, doc_id, user)
+            if(result):
+                return result, 200
+            else:
+                extraction_results = []
+                document_name = doc_name.document_name.split('.')[0]
+                # filename = 'classified 2.csv'
+                with open(os.path.join(current_app.config['RESULT_FOLDER'], document_name+".csv")) as csv_file:
+                    csv_reader = csv.reader(csv_file, delimiter=',')
+                    line_count = 0
+                    for row in csv_reader:
+                        if line_count == 0 or line_count == 1:
+                            line_count += 1
+                            continue
+                        if row[0]:
+                            tags = []
+                            colIndex = 0
+                            for col in row:
+                                if(colIndex == 0):
+                                    colIndex += 1
+                                    continue
+                                if(col):
+                                    tags.append({'text': col})
+                                colIndex += 1
+
+                            extraction_results.append(
+                                {'id': line_count, 'key': line_count, 'tag': tags, 'paragraph': row[0]})
+                        line_count += 1
+                    print(f'Processed {line_count} lines.')
+                return extraction_results, 200
+        else:
+            responseObject = {
+                'status': 'Unauthorized',
+                'message': 'Unknown user'
+            }
+            return responseObject, 401
+
+
+@api.route('/view-result')
+@api.doc(security='Bearer Auth')
+class ViewExtractionResultController(Resource):
+
+    def __init__(self, *args, **kwargs):
+        self.log = logging.getLogger(__name__)
         parser = reqparse.RequestParser()
+        self.classification_service = DocumentClassificationService()
         parser.add_argument("file_name", type=str,
                             help='File name', required=True)
         self.req_parser = parser
-        super(DownloadExtractionResultController,
+        super(ViewExtractionResultController,
               self).__init__(*args, **kwargs)
 
     parser = None
@@ -41,34 +113,30 @@ class DownloadExtractionResultController(Resource):
     parser.add_argument('file_name', type=str, help='File name')
 
     @api.doc(parser=parser, validate=True)
-    @token_authenticate
+    @token_authenticate_admin
     def get(self):
-        """DOWNLOAD CLASSIFICATION RESULTS"""
+        """VIEW CLASSIFICATION RESULTS AS ADMIN"""
         args = self.req_parser.parse_args(strict=True)
-        extraction_results = []
-        with open(os.path.join(current_app.config['RESULT_FOLDER'], args.file_name)) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            line_count = 0
-            for row in csv_reader:
-                if line_count == 0 or line_count == 1:
-                    line_count += 1
-                    continue
-                if row[0]:
-                    tags = []
-                    colIndex = 0
-                    for col in row:
-                        if(colIndex == 0):
-                            colIndex += 1
-                            continue
-                        if(col):
-                            tags.append({'text': col})
-                        colIndex += 1
-
-                    extraction_results.append(
-                        {'id': line_count, 'key': line_count, 'tag': tags, 'paragraph': row[0]})
-                line_count += 1
-            print(f'Processed {line_count} lines.')
-        return extraction_results, 200
+        user = get_user_by_auth()
+        if(user):
+            # file_name=args.file_name
+            file_name = 'CRPD.pdf'
+            result = self.classification_service.get_all_paragraphs_and_tags(
+                file_name)
+            if(result):
+                return result, 200
+            else:
+                responseObject = {
+                    'status': 'Not found',
+                    'message': 'Result not found'
+                }
+            return responseObject, 404
+        else:
+            responseObject = {
+                'status': 'Unauthorized',
+                'message': 'Unknown user'
+            }
+            return responseObject, 401
 
 
 @api.route('/update', methods=['POST'])
@@ -103,20 +171,27 @@ class UpdateClassificationResultController(Resource):
                 if edits:
                     classification_data = edits.get('classification_data')
                     training_data = edits.get('training_data')
+                    table_edit_log = edits.get('table_edit_log')
+                    # isClassificationSaved = edits.get('is_saved')
+                    is_classification_saved = self.classification_service.is_document_classification(
+                        document)
+                    if(not is_classification_saved):
+                        if(self.classification_service.save_classification_result(
+                                document, classification_data)):
 
-                    if(self.classification_service.save_classification_result(
-                            document, classification_data)):
-
-                        responseObject = {
-                            'status': 'Success'
-                        }
-                        return responseObject, 200
+                            responseObject = {
+                                'status': 'Success'
+                            }
+                            return responseObject, 200
+                        else:
+                            responseObject = {
+                                'status': 'Data storing failed',
+                                'message': 'Unknown error'
+                            }
+                        return responseObject, 500
                     else:
-                        responseObject = {
-                            'status': 'Data storing failed',
-                            'message': 'Unknown error'
-                        }
-                    return responseObject, 500
+                        self.classification_service.update_classification_result(
+                            user, document, table_edit_log)
                 else:
                     responseObject = {
                         'status': 'Bad request',

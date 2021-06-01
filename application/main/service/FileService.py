@@ -36,17 +36,15 @@ class FileService():
         except IOError:
             print("File not accessible")
             return False
-        # os.rename("path/to/current/file.foo",
-        #           "path/to/new/destination/for/file.foo")
-        # shutil.move("path/to/current/file.foo", "path/to/new/destination/for/file.foo")
-        # os.replace("path/to/current/file.foo", "path/to/new/destination/for/file.foo")
 
-    def upload_file(self, filename, country, file, user):
+    def upload_file(self, filename, language, description, country, file, user):
 
         document = Document(
             document_name=filename,
             user_id=user.id,
-            status=DocumentStatus.Processing
+            status=DocumentStatus.Processing,
+            language=language,
+            description=description
         )
         db.session.add(document)
         db.session.commit()
@@ -57,6 +55,15 @@ class FileService():
         document = Document.query.filter_by(
             document_name=filename,
             user_id=user.id
+        ).first()
+        if(document):
+            return document
+        else:
+            return False
+
+    def get_document_by_id(self, document_id):
+        document = Document.query.filter_by(
+            id=document_id
         ).first()
         if(document):
             return document
@@ -78,7 +85,7 @@ class FileService():
     def get_all_pending_document(self, user):
         document_list = db.session.query(Document).\
             join(User, Document.user_id == User.id).\
-            filter(Document.status == DocumentStatus.Processing and Document.status ==
+            filter(Document.status == DocumentStatus.Processing or Document.status ==
                    DocumentStatus.Classified).all()
         if(len(document_list) > 0):
             result = []
