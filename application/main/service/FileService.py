@@ -1,5 +1,8 @@
 
 
+from application.main.model.Enum.ClassificationResultStatus import ClassificationResultStatus
+from application.main.model.ClassificationResult import ClassificationResult
+from application.main.model.Paragraph import Paragraph
 from flask_restful import Resource, reqparse, reqparse
 import os
 from werkzeug.datastructures import FileStorage
@@ -16,11 +19,13 @@ from application.main.model.Enum.DocumentStatus import DocumentStatus
 
 from application.main.service.WikibaseApi import WikibaseApi
 from application.main.service.AuthService import AuthService
+from application.main.service.PdfService import PdfService
 
 
 class FileService():
     def __init__(self):
         self.auth_service = AuthService()
+        self.pdf_service = PdfService()
 
     def move_file_wiki_upload_request(self, file_name):
         try:
@@ -50,6 +55,33 @@ class FileService():
         db.session.commit()
         file.save(os.path.join(
             current_app.config['UPLOAD_FOLDER'], filename))
+
+        paragraphs = self.pdf_service.extract_paragraph(filename)
+        if(paragraphs):
+            self.save_paragraph(document, paragraphs)
+
+    def save_paragraph(self, document, paragraphs):
+
+        classification = ClassificationResult(
+            document_id=document.id,
+            status=ClassificationResultStatus.Processing,
+        )
+        db.session.add(classification)
+        db.session.commit()
+        # db.session.rollback();
+        count = 1
+        for paragraph in paragraphs:
+            pr = Paragraph(
+                label=document.document_name.split(
+                    '.')[0]+" paragraph " + str(count),
+                paragraph=paragraph,
+                classification_result_id=classification.id,
+                document_id=document.id
+            )
+            db.session.add(pr)
+            count += 1
+        db.session.commit()
+        return True
 
     def get_document(self, filename, user):
         document = Document.query.filter_by(

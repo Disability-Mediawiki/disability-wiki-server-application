@@ -16,11 +16,25 @@ from flask_restplus import Api, Namespace, Resource
 from werkzeug.utils import secure_filename
 from flask import (Flask, current_app, send_file, send_from_directory)
 from .. import db
+from application.main.service.ParagraphExtractorService import ParagraphParser
 
 
 class PdfService():
     def __init__(self):
         ""
+        self.paragraph_extraction = ParagraphParser()
+
+    def extract_paragraph(self, file_name):
+        try:
+            results = self.paragraph_extraction.pdfParagraphExtractor(
+                current_app.config['UPLOAD_FOLDER']+'/'+file_name)
+            if(results):
+                return results
+            else:
+                return False
+        except Exception as e:
+            print(e)
+            return False
 
     def text_search_and_highligh(self, file_name, text):
         doc = fitz.open(current_app.config['UPLOAD_FOLDER']+'/'+file_name)

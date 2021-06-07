@@ -412,14 +412,3 @@ class ParagraphParser():
 
         listExtractedParagraph = redietsTree.harvest_v2()
         return listExtractedParagraph
-
-
-def start():
-
-    pdf_parser = ParagraphParser()
-    result = pdf_parser.pdfParagraphExtractor(
-        "../resources/uploads/output.pdf")
-    print(result)
-
-
-# start()

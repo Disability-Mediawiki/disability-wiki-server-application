@@ -36,8 +36,8 @@ def delete_db():
 
 @manager.command
 def run():
-    # app.run()
-    app.run(port=8181, host='0.0.0.0', debug=True)
+    app.run()
+    # app.run(port=8181, host='0.0.0.0', debug=True)
 
 
 @manager.command
