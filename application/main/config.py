@@ -48,8 +48,8 @@ class Config:
 class DevelopmentConfig(Config):
 
     DEBUG = True
-    # SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki"
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:diswikirights@127.0.0.1/dis_wiki"
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki"
+    # SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:diswikirights@127.0.0.1/dis_wiki"
     SQLALCHEMY_ECHO = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
@@ -57,8 +57,8 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     DEBUG = True
     TESTING = True
-    # SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki_test"
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:diswikirights@127.0.0.1/dis_wiki_test"
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki_test"
+    # SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:diswikirights@127.0.0.1/dis_wiki_test"
     SQLALCHEMY_ECHO = True
     PRESERVE_CONTEXT_ON_EXCEPTION = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -66,8 +66,8 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    # SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki"
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:diswikirights@127.0.0.1/dis_wiki"
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki"
+    # SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:diswikirights@127.0.0.1/dis_wiki"
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

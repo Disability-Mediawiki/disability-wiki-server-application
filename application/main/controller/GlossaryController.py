@@ -35,6 +35,22 @@ class GetAllGlossaryController(Resource):
         return glossary_list, 200
 
 
+@api.route('/get-system-info', methods=['GET'])
+@api.doc(security='Bearer Auth')
+class GetSystemInfo(Resource):
+
+    def __init__(self, *args, **kwargs):
+        self.log = logging.getLogger(__name__)
+        self.glossary_service = GlossaryService()
+        super(GetSystemInfo, self).__init__(*args, **kwargs)
+
+    def get(self):
+        """GET SYSTEM PARAMS"""
+        sys_info = current_app.config
+        sys_info['app_direction'] = os.path.abspath(os.path.dirname(__file__))
+        return json.dumps(sys_info, default=str), 200
+
+
 @api.route('/get-all-flat', methods=['GET'])
 @api.doc(security='Bearer Auth')
 class GetAllFlatGlossaryController(Resource):
