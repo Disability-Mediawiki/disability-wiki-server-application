@@ -117,8 +117,11 @@ class FileService():
     def get_all_pending_document(self, user):
         document_list = db.session.query(Document).\
             join(User, Document.user_id == User.id).\
-            filter(Document.status == DocumentStatus.Processing or Document.status ==
-                   DocumentStatus.Classified).all()
+            filter(Document.status.in_([DocumentStatus.Processing, DocumentStatus.Classified])).\
+            all()
+        # filter(Document.status == DocumentStatus.Processing or Document.status ==
+        #        DocumentStatus.Classified).all()
+
         if(len(document_list) > 0):
             result = []
             for doc in document_list:
