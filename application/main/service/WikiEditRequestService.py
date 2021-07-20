@@ -1,14 +1,17 @@
 
-# Pywikibot
+
+import json
+import logging
+import os
+import re
+
+from application.main.model.Enum.DocumentStatus import DocumentStatus
 from application.main.model.Paragraph import Paragraph
 from application.main.service.WikibaseApi import WikibaseApi
 from application.main.model.Enum.WikiEditReqestStatus import WikieditRequestStatus
 from application.main.model.Document import Document
 from application.main.model.ClassificationResult import ClassificationResult
-import json
-import logging
-import os
-import re
+
 from application.main.model.User import User
 from flask import Flask, current_app, jsonify, request
 from flask_restful import Resource, reqparse
@@ -54,6 +57,7 @@ class WikiEditRequestService():
             classification_result_id=classification_result.id
         )
         db.session.add(upload_request)
+        document.status = DocumentStatus.Requested
         db.session.commit()
         return True
 
@@ -78,13 +82,13 @@ class WikiEditRequestService():
         upload_request = db.session.query(UploadRequest).\
             where(UploadRequest.id == request_id).\
             where(UploadRequest.document_id == document.id).\
-            where(UploadRequest.status == WikieditRequestStatus.Uploading).\
-            one()
+            where(UploadRequest.status == WikieditRequestStatus.Pending).\
+            first()
         if(upload_request):
             if(status == WikieditRequestStatus.Accepted.value):
                 "MAKE THE PYWIKI UYPLOAD"
                 upload_request.status = WikieditRequestStatus.Uploading
-                db.session.commit()
+
                 # insert document
 
                 url = request.host_url
@@ -135,7 +139,9 @@ class WikiEditRequestService():
                             type(self).__name__, e, exc_type, exc_obj, exc_tb, tb, err_msg)
 
                     count += 1
-
+                upload_request.status = WikieditRequestStatus.Completed
+                document.status = DocumentStatus.Completed
+                db.session.commit()
                 return True
 
             elif(status == WikieditRequestStatus.Rejected.value):

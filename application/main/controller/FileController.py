@@ -160,7 +160,7 @@ class UploadFileController(Resource):
                 if(filename and language and description):
                     user = get_user_by_auth()
                     if(user):
-                        self.file_service.upload_file(
+                        self.file_service.upload_file_async(
                             filename, language, description, country, file, user)
                         return {'filename': filename, "status": "success"}, 200
                     else:

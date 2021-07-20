@@ -20,12 +20,16 @@ from application.main.model.Enum.DocumentStatus import DocumentStatus
 from application.main.service.WikibaseApi import WikibaseApi
 from application.main.service.AuthService import AuthService
 from application.main.service.PdfService import PdfService
+from application.main.service.DocumentClassificationService import DocumentClassificationService
+from application.main.service.PublisherService import PublisherService
 
 
 class FileService():
     def __init__(self):
         self.auth_service = AuthService()
         self.pdf_service = PdfService()
+        self.document_classification_service = DocumentClassificationService()
+        self.publisher = PublisherService()
 
     def move_file_wiki_upload_request(self, file_name):
         try:
@@ -43,7 +47,6 @@ class FileService():
             return False
 
     def upload_file(self, filename, language, description, country, file, user):
-
         document = Document(
             document_name=filename,
             user_id=user.id,
@@ -59,29 +62,67 @@ class FileService():
         paragraphs = self.pdf_service.extract_paragraph(filename)
         if(paragraphs):
             self.save_paragraph(document, paragraphs)
-
-    def save_paragraph(self, document, paragraphs):
-
-        classification = ClassificationResult(
-            document_id=document.id,
-            status=ClassificationResultStatus.Processing,
-        )
-        db.session.add(classification)
-        db.session.commit()
-        # db.session.rollback();
-        count = 1
-        for paragraph in paragraphs:
-            pr = Paragraph(
-                label=document.document_name.split(
-                    '.')[0]+" paragraph " + str(count),
-                paragraph=paragraph,
-                classification_result_id=classification.id,
-                document_id=document.id
-            )
-            db.session.add(pr)
-            count += 1
+        document.status = DocumentStatus.Classified
         db.session.commit()
         return True
+
+    def upload_file_async(self, filename, language, description, country, file, user):
+        document = Document(
+            document_name=filename,
+            user_id=user.id,
+            status=DocumentStatus.Processing,
+            language=language,
+            description=description
+        )
+        db.session.add(document)
+        db.session.commit()
+        file.save(os.path.join(
+            current_app.config['UPLOAD_FOLDER'], filename))
+        self.publisher.publish_document_extraction(document)
+        return True
+
+    def extract_document(self, doc):
+        document = Document.query.filter_by(
+            id=doc.get('id'),
+        ).first()
+        if(document):
+            paragraphs = self.pdf_service.extract_paragraph(
+                document.document_name)
+            if(paragraphs):
+                self.save_paragraph(document, paragraphs)
+            document.status = DocumentStatus.Classified
+            db.session.commit()
+        else:
+            return False
+
+    def save_paragraph(self, document, paragraphs):
+        try:
+            classification = ClassificationResult(
+                document_id=document.id,
+                status=ClassificationResultStatus.Processing,
+            )
+            db.session.add(classification)
+            db.session.commit()
+            # db.session.rollback();
+            count = 1
+            for paragraph in paragraphs:
+                pr = Paragraph(
+                    label=document.document_name.split(
+                        '.')[0]+" paragraph " + str(count),
+                    paragraph=paragraph,
+                    classification_result_id=classification.id,
+                    document_id=document.id
+                )
+                db.session.add(pr)
+                db.session.commit()
+                self.document_classification_service.classify_paragraph(pr)
+                count += 1
+            db.session.commit()
+            return True
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            return False
 
     def get_document(self, filename, user):
         document = Document.query.filter_by(

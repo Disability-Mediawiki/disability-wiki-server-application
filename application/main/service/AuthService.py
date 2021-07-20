@@ -9,7 +9,7 @@ from flask import current_app
 from flask_restful import Resource, reqparse
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
-
+from .. import db
 from .. import flask_bcrypt
 
 

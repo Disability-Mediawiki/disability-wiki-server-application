@@ -43,7 +43,7 @@ def token_authenticate(f):
 
         try:
             payload = jwt.decode(
-                auth_token, current_app.config.get('SECRET_KEY'))
+                auth_token, current_app.config.get('SECRET_KEY'), algorithms=["HS256"])
             is_blacklisted_token = BlacklistToken.check_blacklist(auth_token)
             if is_blacklisted_token:
                 return 'Token blacklisted. Please log in again.'
@@ -77,7 +77,7 @@ def token_authenticate_admin(f):
 
         try:
             payload = jwt.decode(
-                auth_token, current_app.config.get('SECRET_KEY'))
+                auth_token, current_app.config.get('SECRET_KEY'), algorithms=["HS256"])
             is_blacklisted_token = BlacklistToken.check_blacklist(auth_token)
             if is_blacklisted_token:
                 return 'Token blacklisted. Please log in again.'
@@ -113,7 +113,7 @@ def get_user_by_auth_old():
 
     try:
         payload = jwt.decode(
-            auth_token, current_app.config.get('SECRET_KEY'))
+            auth_token, current_app.config.get('SECRET_KEY'), algorithms=["HS256"])
         is_blacklisted_token = BlacklistToken.check_blacklist(auth_token)
         if is_blacklisted_token:
             return 'Token blacklisted. Please log in again.'
@@ -143,7 +143,7 @@ def get_user_by_auth():
 
     try:
         payload = jwt.decode(
-            auth_token, current_app.config.get('SECRET_KEY'))
+            auth_token, current_app.config.get('SECRET_KEY'), algorithms=["HS256"])
         is_blacklisted_token = BlacklistToken.check_blacklist(auth_token)
         if is_blacklisted_token:
             return False

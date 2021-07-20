@@ -1,12 +1,10 @@
-
-import jwt
 import datetime
 from flask import current_app
 # from app import app, db, bcrypt
 from .. import db, flask_bcrypt as bcrypt
 from sqlalchemy.orm import relationship
 from . import TrainingData
-
+import jwt
 # basic model
 
 
@@ -41,6 +39,9 @@ class User(db.Model):
         self.registered_on = datetime.datetime.now()
         self.admin = admin
 
+    # def check_password(self, password: str):
+    #     return bcrypt.check_password_hash(self.password_hash, password)
+
     def encode_auth_token(self, user_id):
         """
         Generates the Auth Token
@@ -68,8 +69,10 @@ class User(db.Model):
         :return: integer|string
         """
         try:
+            # payload = jwt.decode(
+            #     auth_token, current_app.config.get('SECRET_KEY'))
             payload = jwt.decode(
-                auth_token, current_app.config.get('SECRET_KEY'))
+                auth_token, current_app.config.get('SECRET_KEY'), algorithms=["HS256"])
             is_blacklisted_token = BlacklistToken.check_blacklist(auth_token)
             if is_blacklisted_token:
                 return 'Token blacklisted. Please log in again.'

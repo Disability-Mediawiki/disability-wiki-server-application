@@ -1,4 +1,5 @@
 
+from application.main.model.TrainingData import TrainingData
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 import logging
@@ -13,13 +14,13 @@ from application.main.model.Paragraph import Paragraph
 from application.main.model.ParagraphTag import ParagraphTag
 from application.main.model.Document import Document
 from application.main.model.User import User
-from application.main.service.WikiEditRequestService import WikiEditRequestService
+from application.main.service.FastTextService import FastTextService
 from application.main.model.Enum.ClassificationResultStatus import ClassificationResultStatus
 
 
 class DocumentClassificationService():
     def __init__(self):
-        self.wiki_edit_request_service = WikiEditRequestService()
+        self.fast_text_service = FastTextService()
 
     def get_all_paragraphs_and_tags_by_user(self, document_name, document_id, user):
         paragraph_list = db.session.query(Paragraph).\
@@ -64,7 +65,7 @@ class DocumentClassificationService():
         classification_result = db.session.query(ClassificationResult).\
             join(Document, Document.id == ClassificationResult.document_id).\
             where(Document.id == document.id).\
-            one()
+            first()
         return classification_result
 
     def save_classification_result(self, document, paragraphs):
@@ -127,6 +128,13 @@ class DocumentClassificationService():
                 )
                 db.session.add(new_tag)
 
+                if(edit.get('new', None)):
+                    paragraph = db.session.query(Paragraph).where(
+                        Paragraph.id == paragraph_id).first()
+                    training_data = TrainingData(
+                        label=tag, paragraph=paragraph.paragraph, user_id=user.id)
+                    db.session.add(training_data)
+
             elif(edit.get('type') == 'delete_row'):
                 paragraph_id = edit.get('row_id')
                 paragraph_obj = db.session.query(Paragraph).\
@@ -138,4 +146,16 @@ class DocumentClassificationService():
                     db.session.delete(paragraph_obj)
 
         db.session.commit()
+        return True
+
+    def classify_paragraph(self, paragraph):
+        paragraph_tags = self.fast_text_service.classify_paragraph(
+            paragraph.paragraph)
+        if(paragraph_tags):
+            for tag in paragraph_tags[0][0]:
+                new_tag = ParagraphTag(
+                    label=tag.split('__label__')[1],
+                    paragraph_id=paragraph.id
+                )
+                db.session.add(new_tag)
         return True

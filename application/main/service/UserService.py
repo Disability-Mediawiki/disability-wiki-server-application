@@ -72,3 +72,14 @@ class UserService():
                 return None
         else:
             return None
+
+    def logout(self, auth_token):
+        resp = User.decode_auth_token(auth_token)
+        if not isinstance(resp, str):
+            try:
+                blacklist_token = self.auth_service.blacklist_token(
+                    auth_token)
+                return True
+            except Exception as e:
+                print(e)
+                return False

@@ -61,7 +61,7 @@ class DownloadExtractionResultController(Resource):
                 return result, 200
             else:
                 extraction_results = []
-                document_name = doc_name.document_name.split('.')[0]
+                document_name = doc_name.split('.')[0]
                 # filename = 'classified 2.csv'
                 with open(os.path.join(current_app.config['RESULT_FOLDER'], document_name+".csv")) as csv_file:
                     csv_reader = csv.reader(csv_file, delimiter=',')

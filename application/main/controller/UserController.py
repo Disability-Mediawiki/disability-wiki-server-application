@@ -91,7 +91,8 @@ class LoginUserController(Resource):
 
                 if auth_token:
                     responseObject = {
-                        'auth_token': auth_token.decode(),
+                        # 'auth_token': auth_token.decode(),
+                        'auth_token': auth_token,
                         'token_type': 'Bearer',
                         'sp': user.admin,
                         'username': user.user_name
@@ -119,6 +120,55 @@ class LoginUserController(Resource):
             return responseObject, 500
 
 
+# @api.route('/logout')
+# class LogoutAPI(Resource):
+#     """
+#     LOGOUT-USER
+#     """
+
+#     def __init__(self, *args, **kwargs):
+#         self.log = logging.getLogger(__name__)
+#         self.user_service = UserService()
+#         self.auth_service = AuthService()
+#         super(LogoutAPI, self).__init__(*args, **kwargs)
+
+#     def get(self):
+#         # get auth token
+#         auth_header = request.headers.get('Authorization')
+#         if auth_header:
+#             auth_token = auth_header.split(" ")[1]
+#         else:
+#             auth_token = ''
+#         if auth_token:
+#             resp = User.decode_auth_token(auth_token)
+#             if not isinstance(resp, str):
+#                 try:
+#                     blacklist_token = self.auth_service.blacklist_token(
+#                         auth_token)
+#                     responseObject = {
+#                         'status': 'success',
+#                         'message': 'Successfully logged out.'
+#                     }
+#                     return responseObject, 200
+#                 except Exception as e:
+#                     responseObject = {
+#                         'status': 'fail',
+#                         'message': e
+#                     }
+#                     return responseObject, 500
+#             else:
+#                 responseObject = {
+#                     'status': 'fail',
+#                     'message': resp
+#                 }
+#                 return responseObject, 401
+#         else:
+#             responseObject = {
+#                 'status': 'fail',
+#                 'message': 'Provide a valid auth token.'
+#             }
+#             return responseObject, 403
+
 @api.route('/logout')
 class LogoutAPI(Resource):
     """
@@ -131,7 +181,7 @@ class LogoutAPI(Resource):
         self.auth_service = AuthService()
         super(LogoutAPI, self).__init__(*args, **kwargs)
 
-    def post(self):
+    def get(self):
         # get auth token
         auth_header = request.headers.get('Authorization')
         if auth_header:
@@ -139,28 +189,24 @@ class LogoutAPI(Resource):
         else:
             auth_token = ''
         if auth_token:
-            resp = User.decode_auth_token(auth_token)
-            if not isinstance(resp, str):
-                try:
-                    blacklist_token = self.auth_service.blacklist_token(
-                        auth_token)
-                    responseObject = {
+            try:
+                if(self.user_service.logout(auth_token)):
+                    return {
                         'status': 'success',
                         'message': 'Successfully logged out.'
-                    }
-                    return responseObject, 200
-                except Exception as e:
-                    responseObject = {
-                        'status': 'fail',
-                        'message': e
-                    }
-                    return responseObject, 500
-            else:
+                    }, 200
+                else:
+                    return {
+                        'status': 'fail'
+                    }, 500
+
+            except Exception as e:
                 responseObject = {
                     'status': 'fail',
-                    'message': resp
+                    'message': e
                 }
-                return responseObject, 401
+                return responseObject, 500
+
         else:
             responseObject = {
                 'status': 'fail',

@@ -1,0 +1,6 @@
+pip install celery//
+pip install celery==5.0.5
+pip install redis
+pip install fasttext
+pip install pika
+pip uninstall JWT, jwt, PyJWT > pip install PyJWT
