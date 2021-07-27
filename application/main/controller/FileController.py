@@ -83,15 +83,20 @@ class GetDocumentListController(Resource):
 
     def get(self):
         """GET ALL DOCUMENTS"""
-        user = get_user_by_auth()
-        if(user):
-            document_list = self.file_service.get_all_document(user)
-            if(document_list):
+        try:
+            user = get_user_by_auth()
+            if(user):
+                document_list = self.file_service.get_all_document(user)
                 return jsonify(document_list)
             else:
-                return "No documents found", 404
-        else:
-            return "invalid token", 403
+                return "invalid token", 403
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return responseObject, 500
 
 
 @api.route('/get-pending-document', methods=['GET'])
@@ -104,15 +109,21 @@ class GetPendingDocumentListController(Resource):
 
     def get(self):
         """GET ALL PENDING DOCUMENTS"""
-        user = get_user_by_auth()
-        if(user):
-            document_list = self.file_service.get_all_pending_document(user)
-            if(document_list):
+        try:
+            user = get_user_by_auth()
+            if(user):
+                document_list = self.file_service.get_all_pending_document(
+                    user)
                 return jsonify(document_list)
             else:
-                return "No documents found", 404
-        else:
-            return "invalid token", 403
+                return "invalid token", 403
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return responseObject, 500
 
 
 @api.route('/upload')
@@ -134,41 +145,48 @@ class UploadFileController(Resource):
     @token_authenticate
     def post(self):
         """UPLOAD FILE"""
-        if request.method == 'POST':
+        try:
+            if request.method == 'POST':
+                if 'file' not in request.files:
+                    self.log.error(
+                        'No file'
+                    )
+                    return "no file", 400
+                file = request.files['file']
+                if file.filename == '':
+                    return 'No selected file', 400
 
-            if 'file' not in request.files:
-                self.log.error(
-                    'No file'
-                )
-                return "no file", 400
-            file = request.files['file']
-            if file.filename == '':
-                return 'No selected file', 400
+                if file and self.allowed_file(file.filename):
+                    # filename = secure_filename(file.filename)
 
-            if file and self.allowed_file(file.filename):
-                # filename = secure_filename(file.filename)
-
-                extention = secure_filename(file.filename.split('.')[1])
-                filename = request.form.get(
-                    'document_name', None).rstrip()+"."+extention
-                country = request.form.get(
-                    'country', None).rstrip()
-                language = request.form.get(
-                    'language', None).rstrip()
-                description = request.form.get(
-                    'description', None).rstrip()
-                if(filename and language and description):
-                    user = get_user_by_auth()
-                    if(user):
-                        self.file_service.upload_file_async(
-                            filename, language, description, country, file, user)
-                        return {'filename': filename, "status": "success"}, 200
+                    extention = secure_filename(file.filename.split('.')[1])
+                    filename = request.form.get(
+                        'document_name', None).rstrip()+"."+extention
+                    country = request.form.get(
+                        'country', None).rstrip()
+                    language = request.form.get(
+                        'language', None).rstrip()
+                    description = request.form.get(
+                        'description', None).rstrip()
+                    if(filename and language and description):
+                        user = get_user_by_auth()
+                        if(user):
+                            self.file_service.upload_file_async(
+                                filename, language, description, country, file, user)
+                            return {'filename': filename, "status": "success"}, 200
+                        else:
+                            return 'Unauthorized', 401
                     else:
-                        return 'Unauthorized', 401
+                        return 'Bad request', 400
                 else:
-                    return 'Bad request', 400
-            else:
-                return 'not supported file format', 400
+                    return 'not supported file format', 400
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return responseObject, 500
 
 
 @api.route('/showfile', methods=['GET', 'POST'])
@@ -195,12 +213,20 @@ class ShowFileController(Resource):
     # @api.doc(parser=parser, validate=True)
     def get(self):
         """DOWNLOAD PDF FILE"""
-        args = self.req_parser.parse_args(strict=True)
-        filename = args.get('file_name')
-        if(filename):
-            return send_from_directory(directory=current_app.config['ORIGINAL_FILE_FOLDER'], filename=filename)
-        else:
-            return 'Bad request', 400
+        try:
+            args = self.req_parser.parse_args(strict=True)
+            filename = args.get('file_name')
+            if(filename):
+                return send_from_directory(directory=current_app.config['ORIGINAL_FILE_FOLDER'], filename=filename)
+            else:
+                return 'Bad request', 400
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return responseObject, 500
 
 
 @api.route('/download-document', methods=['GET', 'POST'])
@@ -226,13 +252,21 @@ class DownloadDocumentController(Resource):
 
     def get(self):
         """DOWNLOAD PDF FILE"""
-        args = self.req_parser.parse_args(strict=True)
-        filename = args.get('file_name')
-        if(filename):
-            # //send_file // as_attachment = True
-            return send_from_directory(directory=current_app.config['ORIGINAL_FILE_FOLDER'], filename=filename)
-        else:
-            return 'Bad request', 400
+        try:
+            args = self.req_parser.parse_args(strict=True)
+            filename = args.get('file_name')
+            if(filename):
+                # //send_file // as_attachment = True
+                return send_from_directory(directory=current_app.config['ORIGINAL_FILE_FOLDER'], filename=filename)
+            else:
+                return 'Bad request', 400
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return responseObject, 500
 
 
 @api.route('/text-document-search', methods=['GET'])
@@ -261,10 +295,19 @@ class ShowDocumentSearch(Resource):
     @api.doc(parser=parser_, validate=True)
     def get(self):
         """SEARCH TEXT IN DOCUMENT"""
-        args = self.req_parser.parse_args(strict=True)
-        file_name = args.get('file_name')
-        text = args.get('text')
-        return self.file_service.text_search_and_highligh(file_name, text)
+        try:
+
+            args = self.req_parser.parse_args(strict=True)
+            file_name = args.get('file_name')
+            text = args.get('text')
+            return self.file_service.text_search_and_highligh(file_name, text)
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return responseObject, 500
 
 
 @api.route('/download-document-test', methods=['GET'])
@@ -285,5 +328,13 @@ class TestDocumentController(Resource):
 
     def get(self):
         """DOWNLOAD PDF FILE"""
-        self.file_service.test_highlight()
-        return "ok"
+        try:
+            self.file_service.test_highlight()
+            return "ok"
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return responseObject, 500

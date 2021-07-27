@@ -50,7 +50,8 @@ class UserController(Resource):
             if user:
                 auth_token = user.encode_auth_token(user.id)
                 responseObject = {
-                    'auth_token': auth_token.decode(),
+                    # 'auth_token': auth_token.decode(),
+                    'auth_token': auth_token,
                     'token_type': 'Bearer',
                     'sp': user.admin,
                     'username': user.user_name

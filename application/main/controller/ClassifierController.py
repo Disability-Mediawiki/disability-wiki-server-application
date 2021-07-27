@@ -19,7 +19,7 @@ api = Namespace('CLASSIFICATION_MODEL_CONTROLLER',
 
 @api.route('/create')
 # @api.doc(security='Bearer Auth')
-class DownloadExtractionResultController(Resource):
+class CreateModelController(Resource):
 
     def __init__(self, *args, **kwargs):
         self.log = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class DownloadExtractionResultController(Resource):
         parser.add_argument("file_name", type=str,
                             help='File name', required=True)
         self.req_parser = parser
-        super(DownloadExtractionResultController,
+        super(CreateModelController,
               self).__init__(*args, **kwargs)
 
     parser = None
@@ -40,10 +40,44 @@ class DownloadExtractionResultController(Resource):
         """CREATE CLASSIFICATION MODEL"""
         args = self.req_parser.parse_args(strict=True)
         file_name = args.file_name
-        # result = self.fast_text_service.create_model(file_name)
-        result = self.fast_text_service.classify_paragraph(file_name)
+        result = self.fast_text_service.create_model(file_name)
+        # result = self.fast_text_service.classify_paragraph(file_name)
         if(result):
-            return json.dumps({"resul": str(result[1])}), 200
+            return json.dumps({"resul": str(result)}), 200
+        else:
+            responseObject = {
+                'status': 'Not found',
+                'message': 'Result not found'
+            }
+        return responseObject, 404
+
+
+@api.route('/classify')
+# @api.doc(security='Bearer Auth')
+class ClassifyTextController(Resource):
+
+    def __init__(self, *args, **kwargs):
+        self.log = logging.getLogger(__name__)
+        parser = reqparse.RequestParser()
+        self.fast_text_service = FastTextService()
+        parser.add_argument("text", type=str,
+                            help='Text to classify', required=True)
+        self.req_parser = parser
+        super(ClassifyTextController,
+              self).__init__(*args, **kwargs)
+
+    parser = None
+    parser = api.parser()
+    parser.add_argument('text', type=str, help='File name')
+
+    @api.doc(parser=parser, validate=True)
+    def get(self):
+        """CLASSIFY TEXT"""
+        args = self.req_parser.parse_args(strict=True)
+        text = args.text
+        result = self.fast_text_service.classify_paragraph(text)
+        if(result):
+            return json.dumps({"resul": str(result)}), 200
         else:
             responseObject = {
                 'status': 'Not found',

@@ -102,15 +102,18 @@ class ViewExtractionResultController(Resource):
         self.log = logging.getLogger(__name__)
         parser = reqparse.RequestParser()
         self.classification_service = DocumentClassificationService()
-        parser.add_argument("file_name", type=str,
+        parser.add_argument("document_name", type=str,
                             help='File name', required=True)
+        parser.add_argument("id", type=int,
+                            help='Document id', required=True)
         self.req_parser = parser
         super(ViewExtractionResultController,
               self).__init__(*args, **kwargs)
 
     parser = None
     parser = api.parser()
-    parser.add_argument('file_name', type=str, help='File name')
+    parser.add_argument('document_name', type=str, help='Document name')
+    parser.add_argument('id', type=int, help='Document id')
 
     @api.doc(parser=parser, validate=True)
     @token_authenticate_admin
@@ -119,10 +122,11 @@ class ViewExtractionResultController(Resource):
         args = self.req_parser.parse_args(strict=True)
         user = get_user_by_auth()
         if(user):
-            # file_name=args.file_name
-            file_name = 'CRPD.pdf'
+            document_name = args.document_name
+            document_id = args.id
+            # file_name = 'CRPD.pdf'
             result = self.classification_service.get_all_paragraphs_and_tags(
-                file_name)
+                document_name, document_id)
             if(result):
                 return result, 200
             else:
@@ -148,7 +152,7 @@ class UpdateClassificationResultController(Resource):
         self.classification_service = DocumentClassificationService()
         self.file_service = FileService()
         parser = reqparse.RequestParser()
-        parser.add_argument("document_name", type=str,
+        parser.add_argument("document", type=dict,
                             help='Document name is missing', required=True)
         parser.add_argument("edit",
                             type=dict, help='Incorrect request format',  required=True)
@@ -163,10 +167,10 @@ class UpdateClassificationResultController(Resource):
         args = self.req_parser.parse_args(strict=True)
         try:
             edits = args.get('edit')
-            document_name = args.get('document_name')
+            document = args.get('document')
             user = get_user_by_auth()
-            document = self.file_service.get_document(
-                document_name, user)
+            document = self.file_service.get_document_by_doc_id_and_user(
+                document.get('id'), user)
             if(document):
                 if edits:
                     classification_data = edits.get('classification_data')

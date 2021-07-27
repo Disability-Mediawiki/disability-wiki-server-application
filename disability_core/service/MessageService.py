@@ -6,12 +6,14 @@ import json
 from application.main import db
 from application.main.model.Paragraph import Paragraph
 from application.main.service.FileService import FileService
+from application.main.service.WikiEditRequestService import WikiEditRequestService
 
 
 class MessageService():
     def __init__(self):
         ""
         self.file_service = FileService()
+        self.wikbase_service = WikiEditRequestService()
 
     def callback(ch, method, properties, body):
         print(" [x] Received %s" % body)
@@ -39,17 +41,16 @@ class MessageService():
         if(cmd != None):
             document = json.loads(cmd)
             self.file_service.extract_document(document)
-        print(" Document extracted %s" % body)
-
+        print("COMPLETED: Document extracted %s" % body)
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
-    def classify_document(self, ch, method, properties, body):
-        print(" [x] Received %s" % body)
-        time.sleep(4)
+    def upload_wikibase(self, ch, method, properties, body):
+        print(" UPLOADING TO WIKIBASE %s" % body)
+        time.sleep(5)
         cmd = body.decode()
-        my_dict = json.loads(cmd)
-        print(my_dict.get('data'))
-        print("hey there")
-        print(" [x] Done")
+        if(cmd != None):
+            payload = json.loads(cmd)
+            self.wikbase_service.upload_to_wikibase(payload)
+        print("COMPLETED: UPLOAD TO WIKIBASE %s" % body)
 
         ch.basic_ack(delivery_tag=method.delivery_tag)

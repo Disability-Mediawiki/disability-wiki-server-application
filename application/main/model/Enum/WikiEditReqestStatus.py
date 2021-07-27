@@ -10,3 +10,4 @@ class WikieditRequestStatus(enum.Enum):
     Cancelled = 'cancelled'
     Accepted = 'accepted'
     Deleted = 'deleted'
+    Failed = 'failed'

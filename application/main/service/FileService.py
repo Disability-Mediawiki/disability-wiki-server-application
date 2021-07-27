@@ -15,7 +15,7 @@ from .. import db
 from application.main.model.User import User
 from application.main.model.Document import Document
 from application.main.model.Enum.DocumentStatus import DocumentStatus
-
+from threading import Thread
 
 from application.main.service.WikibaseApi import WikibaseApi
 from application.main.service.AuthService import AuthService
@@ -79,6 +79,9 @@ class FileService():
         file.save(os.path.join(
             current_app.config['UPLOAD_FOLDER'], filename))
         self.publisher.publish_document_extraction(document)
+        # job = Thread(target=self.extract_document,
+        #              kwargs=document)
+        # job.start()
         return True
 
     def extract_document(self, doc):
@@ -124,9 +127,19 @@ class FileService():
             db.session.rollback()
             return False
 
-    def get_document(self, filename, user):
+    def get_document(self, document, user):
         document = Document.query.filter_by(
-            document_name=filename,
+            id=document.get('id'),
+            user_id=user.id
+        ).first()
+        if(document):
+            return document
+        else:
+            return False
+
+    def get_document_by_doc_id_and_user(self, document_id, user):
+        document = Document.query.filter_by(
+            id=document_id,
             user_id=user.id
         ).first()
         if(document):

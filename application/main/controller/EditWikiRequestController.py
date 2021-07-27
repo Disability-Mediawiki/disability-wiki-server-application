@@ -90,12 +90,11 @@ class UploadWikieditRequestController(Resource):
     def post(self):
         """UPLOAD WIKIEDIT REQUEST """
         args = self.req_parser.parse_args(strict=True)
-        # args = request.data
         try:
             document_payload = args.get('document')
             user = get_user_by_auth()
             document = self.file_service.get_document(
-                document_payload.get('name'), user)
+                document_payload, user)
             if(document):
                 if(self.edit_request_service.create_wikiedit_upload_request(
                         user, document)):
@@ -180,7 +179,7 @@ class VerifyWikiEditRequestController(Resource):
             document = self.file_service.get_document_by_id(
                 document_id)
             if(document):
-                result = self.edit_request_service.update_wikiedit_request(
+                result = self.edit_request_service.update_wikiedit_request_async(
                     document, request_id, status)
                 if(result):
                     responseObject = {

@@ -2,5 +2,6 @@ import enum
 
 
 class MesssageQueue(enum.Enum):
-    Document_classification = 'doc_classify_queue'
-    Document_extraction = 'doc_extraction_queue'
+    DOCUMENT_CLASSIFICATION = 'doc_classify_queue'
+    DOCUMENT_EXTRACTION = 'doc_extraction_queue'
+    UPLOAD_WIKIBASE = 'upload_wikibase'

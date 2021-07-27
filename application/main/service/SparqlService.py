@@ -2,7 +2,7 @@
 
 from flask_restful import Resource, reqparse, reqparse
 import os
-
+from functools import reduce
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 import logging
@@ -35,6 +35,9 @@ class SparqlService():
         self.pywikibot = pywikibot
         self.wikibase_repo = self.wikibase.data_repository()
 
+    def get_dic_value_safe(self, dictionary, keys, default=None):
+        return reduce(lambda d, key: d.get(key, default) if isinstance(d, dict) else default, keys.split("."), dictionary)
+
     def get_all_properties_of_item(self, qid):
         query = """
               SELECT ?a ?aLabel ?propLabel ?b ?bLabel
@@ -66,11 +69,22 @@ class SparqlService():
         self.sparql.setQuery(query)
         self.sparql.setReturnFormat(JSON)
         results = self.sparql.query().convert()
-        item_qid = results['results']['bindings'][0]['s']['value'].split(
-            "/")[-1]
-        if(item_qid):
-            item = self.pywikibot.ItemPage(self.wikibase_repo, item_qid)
-            return item
+        if (results.get('results', None) is not None and
+                results.get('results').get('bindings') is not None and
+                type(results.get('results').get('bindings')) is list and
+                len(results.get('results').get('bindings')) > 0 and
+                results.get('results').get('bindings')[0] is not None and
+                results.get('results').get('bindings')[0].get('s', None) is not None and
+                results.get('results').get('bindings')[0].get(
+                's').get('value', None) is not None
+                ):
+            item_qid = results['results']['bindings'][0]['s']['value'].split(
+                "/")[-1]
+            if(item_qid):
+                item = self.pywikibot.ItemPage(self.wikibase_repo, item_qid)
+                return item
+            else:
+                return False
         else:
             return False
     # Searches a concept based on its label on Tripple store

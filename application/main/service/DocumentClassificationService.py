@@ -43,10 +43,11 @@ class DocumentClassificationService():
 
         return list
 
-    def get_all_paragraphs_and_tags(self, document_name):
+    def get_all_paragraphs_and_tags(self, document_name, document_id):
         paragraph_list = db.session.query(Paragraph).\
             join(ClassificationResult, ClassificationResult.id == Paragraph.classification_result_id).\
             join(Document, Document.id == ClassificationResult.document_id).\
+            where(Document.id == document_id).\
             where(Document.document_name == document_name).\
             all()
         # list = {x.id: x for x in paragraph_list}

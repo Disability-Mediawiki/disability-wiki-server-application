@@ -21,17 +21,14 @@ class MessageController():
         connection = pika.BlockingConnection(
             pika.ConnectionParameters(host='localhost'))
         channel = connection.channel()
-        channel.queue_declare(queue='task_queue', durable=True)
         channel.queue_declare(
-            queue=MesssageQueue.Document_classification.value, durable=True)
+            queue=MesssageQueue.DOCUMENT_EXTRACTION.value, durable=True)
         channel.queue_declare(
-            queue=MesssageQueue.Document_extraction.value, durable=True)
-        print(' [*] Waiting for messages.')
+            queue=MesssageQueue.UPLOAD_WIKIBASE.value, durable=True)
+        print('CORE WORKER STARTED')
         channel.basic_qos(prefetch_count=1)
-        channel.basic_consume(queue='task_queue',
-                              on_message_callback=self.message_service.classify_document)
-        channel.basic_consume(queue=MesssageQueue.Document_classification.value,
-                              on_message_callback=self.message_service.classify_document)
-        channel.basic_consume(queue=MesssageQueue.Document_extraction.value,
+        channel.basic_consume(queue=MesssageQueue.DOCUMENT_EXTRACTION.value,
                               on_message_callback=self.message_service.extract_document)
+        channel.basic_consume(queue=MesssageQueue.UPLOAD_WIKIBASE.value,
+                              on_message_callback=self.message_service.upload_wikibase)
         channel.start_consuming()
