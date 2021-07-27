@@ -56,13 +56,20 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'my_precious_secret_key')
     DEBUG = False
     MAIN_PATH = basedir
-    UPLOAD_FOLDER = './resources/uploads'
+    # UPLOAD_FOLDER = './resources/uploads'
+    UPLOAD_FOLDER = basedir.rsplit('/', 1)[0].rsplit('/', 1)[
+        0]+'/resources/uploads'
     TEMP_DOC_FOLDER = basedir.rsplit('/', 1)[0].rsplit('/', 1)[
         0]+'/resources/temp_doc'
     ORIGINAL_FILE_FOLDER = basedir.rsplit('/', 1)[0].rsplit('/', 1)[
         0]+'/resources/uploads'
+    # RESULT_FOLDER = './resources/classified/result'
+    # CLASSIFIER_MODEL = './resources/classifier_model'
+    # UPLOAD_WIKIEDIT_REQUEST_FOLDER = './resources/classified/requested'
+    # UPLOAD_COMPLETED_FOLDER = './resources/classified/completed'
     RESULT_FOLDER = './resources/classified/result'
-    CLASSIFIER_MODEL = './resources/classifier_model'
+    CLASSIFIER_MODEL = basedir.rsplit('/', 1)[0].rsplit('/', 1)[
+        0]+'/resources/classifier_model'
     UPLOAD_WIKIEDIT_REQUEST_FOLDER = './resources/classified/requested'
     UPLOAD_COMPLETED_FOLDER = './resources/classified/completed'
     BCRYPT_LOG_ROUNDS = 6
@@ -85,7 +92,9 @@ class Config:
     WIKI_API_URI = 'http://localhost:8181/w/api.php'
 
     # ERROR LOG
-    ERROR_LOG_FILE = './resources/error_log/debug_error.txt'
+    # ERROR_LOG_FILE = './resources/error_log/debug_error.txt'
+    ERROR_LOG_FILE = basedir.rsplit('/', 1)[0].rsplit('/', 1)[
+        0]+'/resources/error_log/debug_error.txt'
 
     # WIKIBASE PROPERTIES
     DOCUMENT_CLASS_QID = 'Q1'
