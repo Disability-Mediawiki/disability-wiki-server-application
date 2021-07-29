@@ -24,7 +24,7 @@ from application.main.service.FileService import FileService
 import sys
 import traceback
 from application.main.service.DebuggWriter import DebuggWriter
-from .. import db
+from application import db
 
 
 class WikiEditRequestService():

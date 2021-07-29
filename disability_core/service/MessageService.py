@@ -5,8 +5,10 @@ import time
 import json
 from application.main import db
 from application.main.model.Paragraph import Paragraph
-from application.main.service.FileService import FileService
-from application.main.service.WikiEditRequestService import WikiEditRequestService
+# from application.main.service.FileService import FileService
+# from application.main.service.WikiEditRequestService import WikiEditRequestService
+from .FileService import FileService
+from .WikiEditRequestService import WikiEditRequestService
 
 
 class MessageService():
@@ -36,7 +38,6 @@ class MessageService():
 
     def extract_document(self, ch, method, properties, body):
         print(" Extracting document %s" % body)
-        time.sleep(10)
         cmd = body.decode()
         if(cmd != None):
             document = json.loads(cmd)
@@ -46,7 +47,6 @@ class MessageService():
 
     def upload_wikibase(self, ch, method, properties, body):
         print(" UPLOADING TO WIKIBASE %s" % body)
-        time.sleep(5)
         cmd = body.decode()
         if(cmd != None):
             payload = json.loads(cmd)

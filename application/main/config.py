@@ -56,17 +56,12 @@ class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'my_precious_secret_key')
     DEBUG = False
     MAIN_PATH = basedir
-    # UPLOAD_FOLDER = './resources/uploads'
     UPLOAD_FOLDER = basedir.rsplit('/', 1)[0].rsplit('/', 1)[
         0]+'/resources/uploads'
     TEMP_DOC_FOLDER = basedir.rsplit('/', 1)[0].rsplit('/', 1)[
         0]+'/resources/temp_doc'
     ORIGINAL_FILE_FOLDER = basedir.rsplit('/', 1)[0].rsplit('/', 1)[
         0]+'/resources/uploads'
-    # RESULT_FOLDER = './resources/classified/result'
-    # CLASSIFIER_MODEL = './resources/classifier_model'
-    # UPLOAD_WIKIEDIT_REQUEST_FOLDER = './resources/classified/requested'
-    # UPLOAD_COMPLETED_FOLDER = './resources/classified/completed'
     RESULT_FOLDER = './resources/classified/result'
     CLASSIFIER_MODEL = basedir.rsplit('/', 1)[0].rsplit('/', 1)[
         0]+'/resources/classifier_model'
@@ -92,7 +87,6 @@ class Config:
     WIKI_API_URI = 'http://localhost:8181/w/api.php'
 
     # ERROR LOG
-    # ERROR_LOG_FILE = './resources/error_log/debug_error.txt'
     ERROR_LOG_FILE = basedir.rsplit('/', 1)[0].rsplit('/', 1)[
         0]+'/resources/error_log/debug_error.txt'
 
@@ -121,8 +115,8 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     DEBUG = True
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki_test"
-    # SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:diswikirights@127.0.0.1/dis_wiki_test"
+    # SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki_test"
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:diswikirights@127.0.0.1/dis_wiki_test"
     SQLALCHEMY_ECHO = True
     PRESERVE_CONTEXT_ON_EXCEPTION = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -130,8 +124,8 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki"
-    # SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:diswikirights@127.0.0.1/dis_wiki"
+    # SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki"
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:diswikirights@127.0.0.1/dis_wiki"
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

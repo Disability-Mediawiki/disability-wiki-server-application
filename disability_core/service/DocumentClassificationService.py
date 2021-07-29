@@ -8,7 +8,7 @@ from flask import request, jsonify
 from flask import Flask
 from flask_restplus import Resource, Api, Namespace
 from flask import current_app
-from .. import db
+from application import db
 from application.main.model.ClassificationResult import ClassificationResult
 from application.main.model.Paragraph import Paragraph
 from application.main.model.ParagraphTag import ParagraphTag
@@ -20,8 +20,8 @@ from application.main.model.Enum.ClassificationResultStatus import Classificatio
 
 class DocumentClassificationService():
     def __init__(self):
-        # self.fast_text_service = FastTextService()
-        self.fast_text_service = None
+        self.fast_text_service = FastTextService()
+        # self.fast_text_service = None
 
     def get_all_paragraphs_and_tags_by_user(self, document_name, document_id, user):
         paragraph_list = db.session.query(Paragraph).\

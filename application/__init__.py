@@ -19,7 +19,7 @@ from application.main.controller.EditWikiRequestController import api as request
 from application.main.controller.GlossaryController import api as glossary_api_ns
 from application.main.controller.DocumentClassificationController import api as classification_api_ns
 from application.main.controller.TrainingDataController import api as training_api_ns
-from application.main.controller.ClassifierController import api as classifier_api_ns
+# from application.main.controller.ClassifierController import api as classifier_api_ns
 from application.main import create_app, db
 
 # SQLALCHEMY
@@ -56,7 +56,7 @@ api.add_namespace(request_wiki_edit_api_ns, path='/request')
 api.add_namespace(glossary_api_ns, path='/glossary')
 api.add_namespace(classification_api_ns, path='/doc-classifiy')
 api.add_namespace(training_api_ns, path='/training')
-api.add_namespace(classifier_api_ns, path='/classifier')
+# api.add_namespace(classifier_api_ns, path='/classifier')
 
 
 # app = create_app('dev')
