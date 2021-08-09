@@ -1,11 +1,9 @@
-
-
-import csv
+# /*
+# GLOSSARY MANAGEMENT CONTROLLER
+# */
 import json
 import logging
 import os
-
-import pandas as pd
 from application.main.service.AuthenticationService import (
     token_authenticate, token_authenticate_admin)
 from flask import (Flask, current_app, jsonify, make_response, request,
@@ -18,6 +16,10 @@ from application.main.service.GlossaryService import GlossaryService
 
 api = GlossaryDto.api
 _glossary = GlossaryDto.glossary
+
+# /*
+# GET ALL GLOSSARY TERMS
+# */
 
 
 @api.route('/get-all', methods=['GET'])
@@ -34,21 +36,9 @@ class GetAllGlossaryController(Resource):
         glossary_list = self.glossary_service.get_all()
         return glossary_list, 200
 
-
-@api.route('/get-system-info', methods=['GET'])
-@api.doc(security='Bearer Auth')
-class GetSystemInfo(Resource):
-
-    def __init__(self, *args, **kwargs):
-        self.log = logging.getLogger(__name__)
-        self.glossary_service = GlossaryService()
-        super(GetSystemInfo, self).__init__(*args, **kwargs)
-
-    def get(self):
-        """GET SYSTEM PARAMS"""
-        sys_info = current_app.config
-        sys_info['app_direction'] = os.path.abspath(os.path.dirname(__file__))
-        return json.dumps(sys_info, default=str), 200
+# /*
+# GET ALL GLOSSARY AND SYNONYMS IN ONE DIMENTION ARRAY
+# */
 
 
 @api.route('/get-all-flat', methods=['GET'])
@@ -64,6 +54,10 @@ class GetAllFlatGlossaryController(Resource):
         """GET ALL GLOSSARY AND SYNONYMS-FLAT LIST"""
         glossary_list = self.glossary_service.get_all_as_flat_list()
         return glossary_list, 200
+
+# /*
+# CREATE GLOSSARY TERM
+# */
 
 
 @api.route('/create')

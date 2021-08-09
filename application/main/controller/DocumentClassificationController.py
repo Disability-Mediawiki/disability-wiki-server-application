@@ -1,11 +1,13 @@
 
+# /*
+# DOCUMENT CLASSIFICATION CONTROLER
+# */
 
 import csv
 import json
 import logging
 import os
 
-import pandas as pd
 from application.main.service.AuthenticationService import (
     token_authenticate, token_authenticate_admin, get_user_by_auth)
 from application.main.service.FileService import FileService
@@ -21,6 +23,10 @@ from werkzeug.utils import secure_filename
 
 api = Namespace('DOCUMENT_CLASSIFICATION_CONTROLLER',
                 description='Classification Operations')
+
+# /*
+# GET CLASSIFICATION RESULTS OF A GIVEN DOCUMENT AND USER
+# */
 
 
 @api.route('/download')
@@ -49,7 +55,7 @@ class DownloadExtractionResultController(Resource):
     @api.doc(parser=parser, validate=True)
     @token_authenticate
     def get(self):
-        """DOWNLOAD CLASSIFICATION RESULTS"""
+        """GET CLASSIFICATION RESULTS - args:[Document,USER]"""
         args = self.req_parser.parse_args(strict=True)
         user = get_user_by_auth()
         if(user):
@@ -60,32 +66,8 @@ class DownloadExtractionResultController(Resource):
             if(result):
                 return result, 200
             else:
-                extraction_results = []
-                document_name = doc_name.split('.')[0]
-                # filename = 'classified 2.csv'
-                with open(os.path.join(current_app.config['RESULT_FOLDER'], document_name+".csv")) as csv_file:
-                    csv_reader = csv.reader(csv_file, delimiter=',')
-                    line_count = 0
-                    for row in csv_reader:
-                        if line_count == 0 or line_count == 1:
-                            line_count += 1
-                            continue
-                        if row[0]:
-                            tags = []
-                            colIndex = 0
-                            for col in row:
-                                if(colIndex == 0):
-                                    colIndex += 1
-                                    continue
-                                if(col):
-                                    tags.append({'text': col})
-                                colIndex += 1
 
-                            extraction_results.append(
-                                {'id': line_count, 'key': line_count, 'tag': tags, 'paragraph': row[0]})
-                        line_count += 1
-                    print(f'Processed {line_count} lines.')
-                return extraction_results, 200
+                return [], 200
         else:
             responseObject = {
                 'status': 'Unauthorized',
@@ -94,6 +76,9 @@ class DownloadExtractionResultController(Resource):
             return responseObject, 401
 
 
+# /*
+# DOWNLOAD CLASSIFICATION RESULTS OF A GIVEN DOCUMENT {ADMIN ONLY}
+# */
 @api.route('/view-result')
 @api.doc(security='Bearer Auth')
 class ViewExtractionResultController(Resource):
@@ -118,13 +103,12 @@ class ViewExtractionResultController(Resource):
     @api.doc(parser=parser, validate=True)
     @token_authenticate_admin
     def get(self):
-        """VIEW CLASSIFICATION RESULTS AS ADMIN"""
+        """GET CLASSIFICATION RESULTS AS ADMIN - args:[DOCUMENT]"""
         args = self.req_parser.parse_args(strict=True)
         user = get_user_by_auth()
         if(user):
             document_name = args.document_name
             document_id = args.id
-            # file_name = 'CRPD.pdf'
             result = self.classification_service.get_all_paragraphs_and_tags(
                 document_name, document_id)
             if(result):
@@ -141,6 +125,10 @@ class ViewExtractionResultController(Resource):
                 'message': 'Unknown user'
             }
             return responseObject, 401
+
+# /*
+# UPDATE CLASSIFICATION RESULTS OF A DOCUMENT
+# */
 
 
 @api.route('/update', methods=['POST'])
@@ -163,7 +151,7 @@ class UpdateClassificationResultController(Resource):
     @api.doc(security='Bearer Auth')
     @token_authenticate
     def post(self):
-        """UPDATE CLASSIFICATION RESULT"""
+        """UPDATE CLASSIFICATION RESULT - args:[editLog,document]"""
         args = self.req_parser.parse_args(strict=True)
         try:
             edits = args.get('edit')
@@ -196,6 +184,10 @@ class UpdateClassificationResultController(Resource):
                     else:
                         self.classification_service.update_classification_result(
                             user, document, table_edit_log)
+                        responseObject = {
+                            'status': 'Success'
+                        }
+                        return responseObject, 200
                 else:
                     responseObject = {
                         'status': 'Bad request',

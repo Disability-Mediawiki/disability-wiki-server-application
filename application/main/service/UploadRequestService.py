@@ -1,5 +1,6 @@
 
 
+from application.main.model.Enum.DocumentType import DocumentType
 from application.main.service.PublisherService import PublisherService
 import json
 import logging
@@ -11,7 +12,6 @@ from application.main.model.Paragraph import Paragraph
 from application.main.service.WikibaseApi import WikibaseApi
 from application.main.model.Enum.WikiEditReqestStatus import WikieditRequestStatus
 from application.main.model.Document import Document
-from application.main.model.ClassificationResult import ClassificationResult
 
 from application.main.model.User import User
 from flask import Flask, current_app, jsonify, request
@@ -24,10 +24,10 @@ from application.main.service.FileService import FileService
 import sys
 import traceback
 from application.main.service.DebuggWriter import DebuggWriter
-from application import db
+from .. import db
 
 
-class WikiEditRequestService():
+class UploadRequestService():
     def __init__(self):
         self.log = logging.getLogger(__name__)
         self.file_service = FileService()
@@ -36,28 +36,10 @@ class WikiEditRequestService():
         self.logger_service = DebuggWriter()
         self.messaging_service = PublisherService()
 
-    def create_upload_request(self, file_name, user):
-        if(self.file_service.move_file_wiki_upload_request(file_name)):
-            upload_request = UploadRequest(
-                file_name=file_name,
-                user_id=user.id
-            )
-            db.session.add(upload_request)
-            db.session.commit()
-            return True
-        else:
-            return False
-
     def create_wikiedit_upload_request(self, user, document):
-        classification_result = db.session.query(ClassificationResult).\
-            join(Document, Document.id == ClassificationResult.document_id).\
-            where(Document.id == document.id).\
-            where(User.id == user.id).\
-            first()
         upload_request = UploadRequest(
             user_id=user.id,
             document_id=document.id,
-            classification_result_id=classification_result.id
         )
         db.session.add(upload_request)
         document.status = DocumentStatus.Requested
@@ -89,6 +71,7 @@ class WikiEditRequestService():
             first()
         upload_request = db.session.query(UploadRequest).\
             where(UploadRequest.id == payload.get('request_id')).\
+            where(UploadRequest.document_id == document.id).\
             first()
         document_name = document.document_name.split('.')[0]
         label = {document.language.value: document_name.capitalize()}
@@ -102,16 +85,12 @@ class WikiEditRequestService():
             return False
         # INSERT PARAGRAPH
         paragraphs = db.session.query(Paragraph).\
-            join(ClassificationResult, ClassificationResult.id == Paragraph.classification_result_id).\
-            join(Document, Document.id == ClassificationResult.document_id).\
+            join(Document, Document.id == Paragraph.document_id).\
             where(Document.id == document.id).\
             all()
 
         count = 0
         for paragraph in paragraphs:
-            if(count < 3):
-                count += 1
-                continue
             paragraph_label = {
                 document.language.value: document_name.capitalize()+" "+paragraph.label.capitalize()}
             paragraph_description = {
@@ -149,7 +128,12 @@ class WikiEditRequestService():
                 upload_request.status = WikieditRequestStatus.Uploading
                 db.session.commit()
                 url = request.host_url
-                file_url = f"{url}api/file/download-document?file_name={document.document_name}"
+                file_url = ""
+                if(document.document_type == DocumentType.Document):
+                    file_url = f"{url}api/file/download-document?file_name={document.document_name}"
+                else:
+                    file_url = document.document_link
+
                 self.messaging_service.publish_wikibase_upload(
                     file_url, document.id, request_id)
                 # payload = {'url': file_url, 'document_id': document.id,
@@ -191,8 +175,7 @@ class WikiEditRequestService():
 
                 # INSERT PARAGRAPH CONCEPT
                 paragraphs = db.session.query(Paragraph).\
-                    join(ClassificationResult, ClassificationResult.id == Paragraph.classification_result_id).\
-                    join(Document, Document.id == ClassificationResult.document_id).\
+                    join(Document, Document.id == Paragraph.document_id).\
                     where(Document.id == document.id).\
                     all()
 

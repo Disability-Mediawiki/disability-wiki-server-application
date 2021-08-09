@@ -7,8 +7,6 @@ from sqlalchemy.orm import relationship
 
 from .. import db
 from .. import flask_bcrypt as bcrypt
-from .Enum import DocumentStatus
-from .Enum.ClassificationResultStatus import ClassificationResultStatus
 
 
 class ParagraphTag(db.Model):

@@ -10,16 +10,14 @@ from flask_cors import CORS
 
 from flask_bcrypt import Bcrypt
 
-# from controller.FileController import api as file_ns
 from application.main.controller.FileController import api as file_ns
-# from main.controller.WikibaseController import api as wikibase_api_ns
 from application.main.controller.WikibaseController import api as wikibase_api_ns
 from application.main.controller.UserController import api as user_api_ns
-from application.main.controller.EditWikiRequestController import api as request_wiki_edit_api_ns
+from application.main.controller.UploadRequestController import api as upload_request_api_ns
 from application.main.controller.GlossaryController import api as glossary_api_ns
 from application.main.controller.DocumentClassificationController import api as classification_api_ns
 from application.main.controller.TrainingDataController import api as training_api_ns
-# from application.main.controller.ClassifierController import api as classifier_api_ns
+from application.main.controller.WebContentController import api as web_content_api_ns
 from application.main import create_app, db
 
 # SQLALCHEMY
@@ -52,22 +50,8 @@ api = Api(blueprint,
 api.add_namespace(file_ns, path='/file')
 api.add_namespace(wikibase_api_ns, path='/wikibase')
 api.add_namespace(user_api_ns, path='/user')
-api.add_namespace(request_wiki_edit_api_ns, path='/request')
+api.add_namespace(upload_request_api_ns, path='/request')
 api.add_namespace(glossary_api_ns, path='/glossary')
 api.add_namespace(classification_api_ns, path='/doc-classifiy')
 api.add_namespace(training_api_ns, path='/training')
-# api.add_namespace(classifier_api_ns, path='/classifier')
-
-
-# app = create_app('dev')
-# CORS(app, resources={r'/*': {'origins': '*'}})
-# db = SQLAlchemy(app)
-# bcrypt = Bcrypt(app)
-# app.register_blueprint(blueprint)
-
-
-# moved from manage.py
-# app.app_context().push()
-# manager = Manager(app)
-# migrate = Migrate(app, db)
-# manager.add_command('db', MigrateCommand)
+api.add_namespace(web_content_api_ns, path='/web-content')

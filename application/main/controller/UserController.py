@@ -1,4 +1,6 @@
-
+# /*
+# USER CONTROLLER
+# */
 
 import logging
 import os
@@ -10,7 +12,6 @@ from application.main.service.AuthService import AuthService
 from flask import Flask, current_app, jsonify, make_response, request
 from flask_restful import Resource, reqparse
 from flask_restplus import Api, Namespace, Resource
-# from werkzeug import FileStorage,datastructures
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 

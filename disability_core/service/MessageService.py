@@ -5,36 +5,15 @@ import time
 import json
 from application.main import db
 from application.main.model.Paragraph import Paragraph
-# from application.main.service.FileService import FileService
-# from application.main.service.WikiEditRequestService import WikiEditRequestService
 from .FileService import FileService
-from .WikiEditRequestService import WikiEditRequestService
+from .UploadRequestService import UploadRequestService
 
 
 class MessageService():
     def __init__(self):
         ""
         self.file_service = FileService()
-        self.wikbase_service = WikiEditRequestService()
-
-    def callback(ch, method, properties, body):
-        print(" [x] Received %s" % body)
-        paragraph_list = db.session.query(Paragraph).\
-            all()
-        print(*paragraph_list)
-        time.sleep(10)
-        cmd = body.decode()
-        # doc = fitz.open(os.path.dirname(os.path.abspath(__file__)) +'/resources/uploads/CRPD.pdf')
-        if cmd == 'hey':
-            print("hey there")
-        elif cmd == 'hello':
-            print("well hello there")
-        else:
-            print("sorry i did not understand ", body)
-
-        print(" [x] Done")
-
-        ch.basic_ack(delivery_tag=method.delivery_tag)
+        self.wikbase_service = UploadRequestService()
 
     def extract_document(self, ch, method, properties, body):
         print(" Extracting document %s" % body)

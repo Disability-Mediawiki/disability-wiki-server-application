@@ -1,7 +1,6 @@
 
 
-from application.main.model.Enum.ClassificationResultStatus import ClassificationResultStatus
-from application.main.model.ClassificationResult import ClassificationResult
+from application.main.model.Enum.DocumentType import DocumentType
 from application.main.model.Paragraph import Paragraph
 from flask_restful import Resource, reqparse, reqparse
 import os
@@ -15,8 +14,7 @@ from .. import db
 from application.main.model.User import User
 from application.main.model.Document import Document
 from application.main.model.Enum.DocumentStatus import DocumentStatus
-from threading import Thread
-
+# from threading import Thread
 from application.main.service.WikibaseApi import WikibaseApi
 from application.main.service.AuthService import AuthService
 from application.main.service.PdfService import PdfService
@@ -31,26 +29,12 @@ class FileService():
         self.document_classification_service = DocumentClassificationService()
         self.publisher = PublisherService()
 
-    def move_file_wiki_upload_request(self, file_name):
-        try:
-            if os.path.isfile(os.path.join(
-                    current_app.config['RESULT_FOLDER'], file_name)):
-                os.replace(os.path.join(
-                    current_app.config['RESULT_FOLDER'], file_name),
-                    os.path.join(
-                    current_app.config['UPLOAD_WIKIEDIT_REQUEST_FOLDER'], file_name))
-                return True
-            else:
-                return False
-        except IOError:
-            print("File not accessible")
-            return False
-
     def upload_file(self, filename, language, description, country, file, user):
         document = Document(
             document_name=filename,
             user_id=user.id,
             status=DocumentStatus.Processing,
+            document_type=DocumentType.Document,
             language=language,
             description=description
         )
@@ -71,6 +55,7 @@ class FileService():
             document_name=filename,
             user_id=user.id,
             status=DocumentStatus.Processing,
+            document_type=DocumentType.Document,
             language=language,
             description=description
         )
@@ -83,49 +68,6 @@ class FileService():
         #              kwargs=document)
         # job.start()
         return True
-
-    def extract_document(self, doc):
-        document = Document.query.filter_by(
-            id=doc.get('id'),
-        ).first()
-        if(document):
-            paragraphs = self.pdf_service.extract_paragraph(
-                document.document_name)
-            if(paragraphs):
-                self.save_paragraph(document, paragraphs)
-            document.status = DocumentStatus.Classified
-            db.session.commit()
-        else:
-            return False
-
-    def save_paragraph(self, document, paragraphs):
-        try:
-            classification = ClassificationResult(
-                document_id=document.id,
-                status=ClassificationResultStatus.Processing,
-            )
-            db.session.add(classification)
-            db.session.commit()
-            # db.session.rollback();
-            count = 1
-            for paragraph in paragraphs:
-                pr = Paragraph(
-                    label=document.document_name.split(
-                        '.')[0]+" paragraph " + str(count),
-                    paragraph=paragraph,
-                    classification_result_id=classification.id,
-                    document_id=document.id
-                )
-                db.session.add(pr)
-                db.session.commit()
-                self.document_classification_service.classify_paragraph(pr)
-                count += 1
-            db.session.commit()
-            return True
-        except Exception as e:
-            print(e)
-            db.session.rollback()
-            return False
 
     def get_document(self, document, user):
         document = Document.query.filter_by(
@@ -158,12 +100,13 @@ class FileService():
 
     def get_all_document(self, user):
         document_list = db.session.query(Document).\
-            join(User, Document.user_id == User.id).all()
+            join(User, Document.user_id == User.id).\
+            where(Document.user_id == user.id).all()
         if(len(document_list) > 0):
             result = []
             for doc in document_list:
-                result.append({'id': doc.id, 'name': doc.document_name,
-                              'status': doc.status.value, 'date': doc.uploaded_on, 'key': doc.id})
+                result.append({'id': doc.id, 'name': doc.document_name, 'type': doc.document_type.value,
+                              'status': doc.status.value, 'date': doc.uploaded_on, 'key': doc.id, 'link': doc.document_link})
             return result
         else:
             return False
@@ -171,6 +114,7 @@ class FileService():
     def get_all_pending_document(self, user):
         document_list = db.session.query(Document).\
             join(User, Document.user_id == User.id).\
+            where(Document.user_id == user.id).\
             filter(Document.status.in_([DocumentStatus.Processing, DocumentStatus.Classified])).\
             all()
         # filter(Document.status == DocumentStatus.Processing or Document.status ==
@@ -179,7 +123,7 @@ class FileService():
         if(len(document_list) > 0):
             result = []
             for doc in document_list:
-                result.append({'id': doc.id, 'name': doc.document_name,
+                result.append({'id': doc.id, 'name': doc.document_name, 'type': doc.document_type.value,
                               'status': doc.status.value, 'date': doc.uploaded_on, 'key': doc.id})
             return result
         else:

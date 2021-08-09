@@ -1,4 +1,5 @@
 
+from application.main.model.Enum.DocumentType import DocumentType
 from application.main.service.SparqlService import SparqlService
 from flask_restful import Resource, reqparse, reqparse
 import os
@@ -66,9 +67,8 @@ class WikibaseApi():
                     return True
         return False
 
-    def create_document_entity(self, label, description, key, document_link):
+    def create_document_entity(self, label, description, key, document_link, type):
         "CREATE DOCUMENT ENTITY"
-
         search_result = self.sparql_service.search_wiki_item_sparql(
             self.capitalize_first_letter(key.rstrip()))
         is_exist = self.search_exact_wiki_item(
@@ -84,17 +84,29 @@ class WikibaseApi():
             # insert statements
             new_claims = []
             claim_data = {}
-
-            # INSTANCE_OF
-            document_class_entity = self.pywikibot.ItemPage(
-                self.wikibase_repo, current_app.config['DOCUMENT_CLASS_QID'])
-            document_class_entity.get()
-            instance_of_property = self.pywikibot.PropertyPage(
-                self.wikibase_repo, current_app.config['INSTACE_OF_PROPERTY_PID'])
-            instance_of_property.get()
-            instance_claim = self.pywikibot.Claim(
-                self.wikibase_repo, instance_of_property.id, datatype=instance_of_property.type)
-            instance_claim.setTarget(document_class_entity)
+            instance_claim = {}
+            if(type == DocumentType.Document):
+                # INSTANCE_OF_ DOCUMENT
+                document_class_entity = self.pywikibot.ItemPage(
+                    self.wikibase_repo, current_app.config['DOCUMENT_CLASS_QID'])
+                document_class_entity.get()
+                instance_of_property = self.pywikibot.PropertyPage(
+                    self.wikibase_repo, current_app.config['INSTACE_OF_PROPERTY_PID'])
+                instance_of_property.get()
+                instance_claim = self.pywikibot.Claim(
+                    self.wikibase_repo, instance_of_property.id, datatype=instance_of_property.type)
+                instance_claim.setTarget(document_class_entity)
+            else:
+                # INSTANCE_OF_ WEB_CONTENT
+                document_class_entity = self.pywikibot.ItemPage(
+                    self.wikibase_repo, current_app.config['WEB_CONTENT_CLASS_QID'])
+                document_class_entity.get()
+                instance_of_property = self.pywikibot.PropertyPage(
+                    self.wikibase_repo, current_app.config['INSTACE_OF_PROPERTY_PID'])
+                instance_of_property.get()
+                instance_claim = self.pywikibot.Claim(
+                    self.wikibase_repo, instance_of_property.id, datatype=instance_of_property.type)
+                instance_claim.setTarget(document_class_entity)
 
             # DOCUMENT_URI
             document_uri_property = self.pywikibot.PropertyPage(

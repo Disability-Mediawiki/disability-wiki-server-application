@@ -25,14 +25,8 @@ class UploadRequest(db.Model):
     document_id = Column(Integer, ForeignKey('document.id'))
     document = relationship("Document", back_populates="upload_requests")
 
-    classification_result_id = Column(
-        Integer, ForeignKey('classification_result.id'),  nullable=False)
-    classification_result = relationship(
-        "ClassificationResult", back_populates="upload_requests")
-
-    def __init__(self, user_id, document_id, classification_result_id, status=WikieditRequestStatus.Pending.value):
+    def __init__(self, user_id, document_id,  status=WikieditRequestStatus.Pending.value):
         self.requested_on = datetime.datetime.now()
         self.user_id = user_id
         self.document_id = document_id
-        self.classification_result_id = classification_result_id
         self.status = status

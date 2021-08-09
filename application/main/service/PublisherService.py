@@ -30,7 +30,7 @@ class PublisherService():
 
     def publish_document_extraction(self, doc):
         body = json.dumps({'id': doc.id, 'name': doc.document_name,
-                           'status': doc.status.value, 'key': doc.id})
+                           'status': doc.status.value, 'key': doc.id, 'document_type': doc.document_type.value})
         self.channel.basic_publish(
             exchange='',
             routing_key=MesssageQueue.DOCUMENT_EXTRACTION.value,

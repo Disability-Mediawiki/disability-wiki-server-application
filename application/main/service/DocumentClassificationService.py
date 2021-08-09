@@ -9,13 +9,11 @@ from flask import Flask
 from flask_restplus import Resource, Api, Namespace
 from flask import current_app
 from .. import db
-from application.main.model.ClassificationResult import ClassificationResult
 from application.main.model.Paragraph import Paragraph
 from application.main.model.ParagraphTag import ParagraphTag
 from application.main.model.Document import Document
 from application.main.model.User import User
 from application.main.service.FastTextService import FastTextService
-from application.main.model.Enum.ClassificationResultStatus import ClassificationResultStatus
 
 
 class DocumentClassificationService():
@@ -25,8 +23,7 @@ class DocumentClassificationService():
 
     def get_all_paragraphs_and_tags_by_user(self, document_name, document_id, user):
         paragraph_list = db.session.query(Paragraph).\
-            join(ClassificationResult, ClassificationResult.id == Paragraph.classification_result_id).\
-            join(Document, Document.id == ClassificationResult.document_id).\
+            join(Document, Document.id == Paragraph.document_id).\
             join(User, User.id == Document.user_id).\
             where(Document.document_name == document_name).\
             where(User.id == user.id).\
@@ -39,15 +36,13 @@ class DocumentClassificationService():
             for tag in paragraph.paragraph_tags:
                 tags.append({'text': tag.label, 'id': tag.id})
             list.append(
-                {'classification_id': paragraph.classification_result_id, 'id': paragraph.id, 'key': str(paragraph.id)+"_"+str(paragraph.classification_result_id), 'tag': tags,
+                {'document_id': paragraph.document_id, 'id': paragraph.id, 'key': str(paragraph.id)+"_"+str(paragraph.document_id), 'tag': tags,
                  'paragraph': paragraph.paragraph})
-
         return list
 
     def get_all_paragraphs_and_tags(self, document_name, document_id):
         paragraph_list = db.session.query(Paragraph).\
-            join(ClassificationResult, ClassificationResult.id == Paragraph.classification_result_id).\
-            join(Document, Document.id == ClassificationResult.document_id).\
+            join(Document, Document.id == Paragraph.document_id).\
             where(Document.id == document_id).\
             where(Document.document_name == document_name).\
             all()
@@ -58,33 +53,26 @@ class DocumentClassificationService():
             for tag in paragraph.paragraph_tags:
                 tags.append({'text': tag.label, 'id': tag.id})
             list.append(
-                {'classification_id': paragraph.classification_result_id, 'id': paragraph.id, 'key': str(paragraph.id)+"_"+str(paragraph.classification_result_id), 'tag': tags,
+                {'document_id': paragraph.document_id, 'id': paragraph.id, 'key': str(paragraph.id)+"_"+str(paragraph.document_id), 'tag': tags,
                     'paragraph': paragraph.paragraph})
 
         return list
 
     def is_document_classification(self, document):
-        classification_result = db.session.query(ClassificationResult).\
-            join(Document, Document.id == ClassificationResult.document_id).\
+        paragraph = db.session.query(Paragraph).\
+            join(Document, Document.id == Paragraph.document_id).\
             where(Document.id == document.id).\
             first()
-        return classification_result
+        return paragraph
 
     def save_classification_result(self, document, paragraphs):
 
-        classification = ClassificationResult(
-            document_id=document.id,
-            status=ClassificationResultStatus.Updated,
-        )
-        db.session.add(classification)
-        db.session.flush()
         # db.session.rollback();
         count = 1
         for paragraph in paragraphs:
             pr = Paragraph(
                 label=document.document_name+" paragraph " + str(count),
                 paragraph=paragraph.get('paragraph'),
-                classification_result_id=classification.id,
                 document_id=document.id
             )
             db.session.add(pr)
@@ -102,19 +90,14 @@ class DocumentClassificationService():
 
     def update_classification_result(self, user, document, table_edit_log):
 
-        classification_result = db.session.query(ClassificationResult).\
-            join(Document, Document.id == ClassificationResult.document_id).\
-            where(Document.document_name == document.document_name).\
-            where(User.id == user.id).\
-            first()
         for edit in table_edit_log:
             if(edit.get('type') == 'delete_tag'):
                 tag = edit.get('data')
                 paragraph_id = edit.get('row_id')
                 glossary_tag = db.session.query(ParagraphTag).\
                     join(Paragraph, Paragraph.id == ParagraphTag.paragraph_id).\
-                    join(ClassificationResult, ClassificationResult.id == Paragraph.classification_result_id).\
-                    where(ClassificationResult.id == classification_result.id).\
+                    join(Document, Document.id == Paragraph.document_id).\
+                    where(Document.id == document.id).\
                     where(Paragraph.id == paragraph_id).\
                     where(ParagraphTag.label == tag).\
                     first()
@@ -140,8 +123,8 @@ class DocumentClassificationService():
             elif(edit.get('type') == 'delete_row'):
                 paragraph_id = edit.get('row_id')
                 paragraph_obj = db.session.query(Paragraph).\
-                    join(ClassificationResult, ClassificationResult.id == Paragraph.classification_result_id).\
-                    where(ClassificationResult.id == classification_result.id).\
+                    join(Document, Document.id == Paragraph.document_id).\
+                    where(Document.id == document.id).\
                     where(Paragraph.id == paragraph_id).\
                     first()
                 if(paragraph_obj):

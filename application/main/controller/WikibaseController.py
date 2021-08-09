@@ -1,4 +1,6 @@
-
+# /*
+# WIKIBASE CONTROLLER
+# */
 import os
 # from werkzeug import FileStorage,datastructures
 from werkzeug.datastructures import FileStorage
@@ -12,9 +14,13 @@ from application.main.service.SearchItemService import SearchItemService
 
 api = Namespace('WIKIBASE_CONTROLLER', description='Wikibase Api Operations')
 
+# /*
+# SEARCH ITEM FROM WIKIBASE
+# */
+
 
 @api.route('/search')
-@api.doc(security='apikey')
+@api.doc(security='Bearer')
 @api.param('keyword', 'Search keyword')
 class WikibaseController(Resource):
     parser = None
