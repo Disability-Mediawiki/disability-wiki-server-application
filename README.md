@@ -56,7 +56,7 @@ The application is develoepd using `FLASK-RESTPLUS` framework by following MVC a
     └── ...
 
     
-> ## **CLIENT-WORKER**
+> ## **DETAIL**
 >
 > `controller` 
 >   
@@ -188,7 +188,7 @@ The detail overview and the implementation of this Project is described `report.
 >> autostart=true  
 >> autorestart=true
 >> stderr_logfile=/home/dd07078u/web-application/log/worker.err.log 
-stdout_logfile=/home/dd07078u/web-application/log/worker.out.log 
+>> stdout_logfile=/home/dd07078u/web-application/log/worker.out.log 
 >>```
 > After creating the file, re-read the configuration file and restart the supervisor service. 
 >>  ```bash
@@ -212,10 +212,10 @@ stdout_logfile=/home/dd07078u/web-application/log/worker.out.log
 >>    ports:
 >>      - 5672:5672
 >>      - 15672:15672
-```
+>>```
 
 #### NOTE!!!
-> Please refer `report.pdf` for more information. 
+Please refer `report.pdf` for more information. 
 
 ## Stack
 * Python 3
