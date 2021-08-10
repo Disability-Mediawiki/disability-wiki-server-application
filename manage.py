@@ -9,7 +9,7 @@ from application.main import create_app, db
 from flask_cors import CORS
 
 
-app = create_app(os.getenv('BOILERPLATE_ENV') or 'dev')
+app = create_app(os.getenv('DISWIKI_SERVER_ENV') or 'dev')
 app.register_blueprint(blueprint)
 
 app.app_context().push()
