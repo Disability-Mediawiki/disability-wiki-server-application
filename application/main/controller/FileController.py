@@ -240,3 +240,41 @@ class DocumentContentSearchController(Resource):
                 'message': 'Try again'
             }
             return responseObject, 500
+
+
+# /*
+# CHECK ALREADY DOCUMENT NAME EXIST - args [text]
+# */
+
+
+@api.route('/is-name-exit', methods=['GET'])
+class DocumentNameValidationController(Resource):
+
+    def __init__(self, *args, **kwargs):
+        self.log = logging.getLogger(__name__)
+        self.file_service = FileService()
+        parser = reqparse.RequestParser()
+        parser.add_argument("file_name", type=str,
+                            help='File name', required=True)
+        self.req_parser = parser
+        super(DocumentNameValidationController, self).__init__(*args, **kwargs)
+
+    parser_ = None
+    parser_ = api.parser()
+    parser_.add_argument('file_name', type=str, help='File name')
+
+    @api.doc(parser=parser_, validate=True)
+    def get(self):
+        """SEARCH IS DOCUMENT NAME EXIST"""
+        try:
+
+            args = self.req_parser.parse_args(strict=True)
+            file_name = args.get('file_name')
+            return self.file_service.is_name_exit(file_name), 200
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return responseObject, 500

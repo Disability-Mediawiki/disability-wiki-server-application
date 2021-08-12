@@ -22,25 +22,35 @@ class UserService():
         self.auth_service = AuthService()
 
     def create_user(self):
-        user = User(
-            email='test@test.com',
-            password='test'
-        )
-        db.session.add(user)
-        db.session.commit()
-        auth_token = user.encode_auth_token(user.id)
-        return auth_token
+        try:
+            user = User(
+                email='test@test.com',
+                password='test'
+            )
+            db.session.add(user)
+            db.session.commit()
+            auth_token = user.encode_auth_token(user.id)
+            return auth_token
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            raise
 
     def register_user(self, username, email, password):
-        user = User(
-            user_name=username,
-            email=email,
-            password=password
-        )
-        db.session.add(user)
-        db.session.commit()
-        # auth_token = user.encode_auth_token(user.id)
-        return user
+        try:
+            user = User(
+                user_name=username,
+                email=email,
+                password=password
+            )
+            db.session.add(user)
+            db.session.commit()
+            # auth_token = user.encode_auth_token(user.id)
+            return user
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            raise
 
     def get_user(self, email):
         user = User.query.filter_by(

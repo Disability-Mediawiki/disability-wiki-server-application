@@ -30,21 +30,26 @@ class WebContentService():
         self.publisher = PublisherService()
 
     def upload_web_content(self, filename, language, description, country, paragraphs, link, user):
-        document = Document(
-            document_name=filename,
-            user_id=user.id,
-            status=DocumentStatus.Processing,
-            document_type=DocumentType.WebContent,
-            language=language,
-            description=description,
-            document_link=link
-        )
-        db.session.add(document)
-        db.session.commit()
-        if(paragraphs):
-            self.save_paragraph(document, paragraphs)
-        db.session.commit()
-        return True
+        try:
+            document = Document(
+                document_name=filename,
+                user_id=user.id,
+                status=DocumentStatus.Processing,
+                document_type=DocumentType.WebContent,
+                language=language,
+                description=description,
+                document_link=link
+            )
+            db.session.add(document)
+            db.session.commit()
+            if(paragraphs):
+                self.save_paragraph(document, paragraphs)
+            db.session.commit()
+            return True
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            raise
 
     def save_paragraph(self, document, paragraphs):
         try:
@@ -63,7 +68,7 @@ class WebContentService():
         except Exception as e:
             print(e)
             db.session.rollback()
-            return False
+            raise
 
     # /*
     # SCRAP THE WEBSITE AND GET ALL PARAGRAPHS AND HYBERLINKS

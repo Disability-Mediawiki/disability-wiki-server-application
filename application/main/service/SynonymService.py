@@ -19,10 +19,15 @@ class SynonymService():
         return glossary_list
 
     def create_synonym(self, synony_tag, glossary_tag_id):
-        synonym = Synonym(
-            label=synony_tag,
-            glossary_tag_id=glossary_tag_id,
-        )
-        db.session.add(synonym)
-        db.session.commit()
-        return synonym
+        try:
+            synonym = Synonym(
+                label=synony_tag,
+                glossary_tag_id=glossary_tag_id,
+            )
+            db.session.add(synonym)
+            db.session.commit()
+            return synonym
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            raise

@@ -24,8 +24,13 @@ class AuthService():
         )
 
     def blacklist_token(self, token):
-        blacklist_token = BlacklistToken(token=token)
-        # insert the token
-        db.session.add(blacklist_token)
-        db.session.commit()
-        return blacklist_token
+        try:
+            blacklist_token = BlacklistToken(token=token)
+            # insert the token
+            db.session.add(blacklist_token)
+            db.session.commit()
+            return blacklist_token
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            raise

@@ -128,13 +128,19 @@ class DocumentClassificationService():
     #     return True
 
     def classify_paragraph(self, paragraph):
-        paragraph_tags = self.fast_text_service.classify_paragraph(
-            paragraph.paragraph)
-        if(paragraph_tags):
-            for tag in paragraph_tags[0][0]:
-                new_tag = ParagraphTag(
-                    label=tag.split('__label__')[1],
-                    paragraph_id=paragraph.id
-                )
-                db.session.add(new_tag)
-        return True
+        try:
+            paragraph_tags = self.fast_text_service.classify_paragraph(
+                paragraph.paragraph)
+            if(paragraph_tags):
+                for tag in paragraph_tags[0][0]:
+                    new_tag = ParagraphTag(
+                        label=tag.split('__label__')[1],
+                        paragraph_id=paragraph.id
+                    )
+                    db.session.add(new_tag)
+                db.session.commit()
+            return True
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            raise

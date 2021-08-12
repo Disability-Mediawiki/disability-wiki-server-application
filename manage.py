@@ -7,22 +7,27 @@ from application import blueprint
 # from application import app, db
 from application.main import create_app, db
 from flask_cors import CORS
-
+# from logging import FileHandler, DEBUG
+import logging
 
 app = create_app(os.getenv('DISWIKI_SERVER_ENV') or 'dev')
 app.register_blueprint(blueprint)
 
 app.app_context().push()
 
-# app.register_blueprint(blueprint)
-
 CORS(app, resources={r'/*': {'origins': '*'}})
-
 
 app.app_context().push()
 manager = Manager(app)
 migrate = Migrate(app, db)
 manager.add_command('db', MigrateCommand)
+
+# ERROR LOG
+# if not app.debug:
+#   file_hameler = FileHandler('error_logs.txt')
+#   file_hameler.setLevel(DEBUG)
+#   app.logger.addHandler(file_hameler)
+logging.basicConfig(filename='error.log', level=logging.DEBUG)
 
 
 @manager.command

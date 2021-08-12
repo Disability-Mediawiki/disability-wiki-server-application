@@ -30,44 +30,54 @@ class FileService():
         self.publisher = PublisherService()
 
     def upload_file(self, filename, language, description, country, file, user):
-        document = Document(
-            document_name=filename,
-            user_id=user.id,
-            status=DocumentStatus.Processing,
-            document_type=DocumentType.Document,
-            language=language,
-            description=description
-        )
-        db.session.add(document)
-        db.session.commit()
-        file.save(os.path.join(
-            current_app.config['UPLOAD_FOLDER'], filename))
+        try:
+            document = Document(
+                document_name=filename,
+                user_id=user.id,
+                status=DocumentStatus.Processing,
+                document_type=DocumentType.Document,
+                language=language,
+                description=description
+            )
+            db.session.add(document)
+            db.session.commit()
+            file.save(os.path.join(
+                current_app.config['UPLOAD_FOLDER'], filename))
 
-        paragraphs = self.pdf_service.extract_paragraph(filename)
-        if(paragraphs):
-            self.save_paragraph(document, paragraphs)
-        document.status = DocumentStatus.Classified
-        db.session.commit()
-        return True
+            paragraphs = self.pdf_service.extract_paragraph(filename)
+            if(paragraphs):
+                self.save_paragraph(document, paragraphs)
+            document.status = DocumentStatus.Classified
+            db.session.commit()
+            return True
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            raise
 
     def upload_file_async(self, filename, language, description, country, file, user):
-        document = Document(
-            document_name=filename,
-            user_id=user.id,
-            status=DocumentStatus.Processing,
-            document_type=DocumentType.Document,
-            language=language,
-            description=description
-        )
-        db.session.add(document)
-        db.session.commit()
-        file.save(os.path.join(
-            current_app.config['UPLOAD_FOLDER'], filename))
-        self.publisher.publish_document_extraction(document)
-        # job = Thread(target=self.extract_document,
-        #              kwargs=document)
-        # job.start()
-        return True
+        try:
+            document = Document(
+                document_name=filename,
+                user_id=user.id,
+                status=DocumentStatus.Processing,
+                document_type=DocumentType.Document,
+                language=language,
+                description=description
+            )
+            db.session.add(document)
+            db.session.commit()
+            file.save(os.path.join(
+                current_app.config['UPLOAD_FOLDER'], filename))
+            self.publisher.publish_document_extraction(document)
+            # job = Thread(target=self.extract_document,
+            #              kwargs=document)
+            # job.start()
+            return True
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            raise
 
     def get_document(self, document, user):
         document = Document.query.filter_by(
@@ -76,6 +86,19 @@ class FileService():
         ).first()
         if(document):
             return document
+        else:
+            return False
+
+    def is_name_exit(self, name):
+        search = "%{}%".format(name.rstrip().lstrip())
+        # document = Document.query.filter_by(
+        #     document_name=name
+        # ).first()
+        document = Document.query.filter(
+            Document.document_name.like(search)
+        ).all()
+        if(document):
+            return True
         else:
             return False
 

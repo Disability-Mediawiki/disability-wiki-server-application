@@ -31,30 +31,36 @@ class FileService():
         self.publisher = PublisherService()
 
     def extract_document(self, doc):
-        document = Document.query.filter_by(
-            id=doc.get('id'),
-        ).first()
-        if(document):
-            if(document.document_type == DocumentType.Document):
-                paragraphs = self.pdf_service.extract_paragraph(
-                    document.document_name)
-                if(paragraphs):
-                    self.save_paragraph(document, paragraphs)
-                document.status = DocumentStatus.Classified
-                db.session.commit()
-                return True
-            elif(document.document_type == DocumentType.WebContent):
-                paragraphs = db.session.query(Paragraph).\
-                    join(Document, Document.id == Paragraph.document_id).\
-                    where(Document.id == document.id).\
-                    all()
-                for pr in paragraphs:
-                    self.document_classification_service.classify_paragraph(pr)
-                document.status = DocumentStatus.Classified
-                db.session.commit()
-                return True
-            
-        else:
+        try:
+            document = Document.query.filter_by(
+                id=doc.get('id'),
+            ).first()
+            if(document):
+                if(document.document_type == DocumentType.Document):
+                    paragraphs = self.pdf_service.extract_paragraph(
+                        document.document_name)
+                    if(paragraphs):
+                        self.save_paragraph(document, paragraphs)
+                    document.status = DocumentStatus.Classified
+                    db.session.commit()
+                    return True
+                elif(document.document_type == DocumentType.WebContent):
+                    paragraphs = db.session.query(Paragraph).\
+                        join(Document, Document.id == Paragraph.document_id).\
+                        where(Document.id == document.id).\
+                        all()
+                    for pr in paragraphs:
+                        self.document_classification_service.classify_paragraph(
+                            pr)
+                    document.status = DocumentStatus.Classified
+                    db.session.commit()
+                    return True
+
+            else:
+                return False
+        except Exception as e:
+            print(e)
+            db.session.rollback()
             return False
 
     def save_paragraph(self, document, paragraphs):

@@ -67,71 +67,79 @@ class DocumentClassificationService():
 
     def save_classification_result(self, document, paragraphs):
 
-        # db.session.rollback();
-        count = 1
-        for paragraph in paragraphs:
-            pr = Paragraph(
-                label=document.document_name+" paragraph " + str(count),
-                paragraph=paragraph.get('paragraph'),
-                document_id=document.id
-            )
-            db.session.add(pr)
-            db.session.flush()
-            for tag in paragraph.get('tags'):
-                p_tag = ParagraphTag(
-                    label=tag.get('text'),
-                    paragraph_id=pr.id
+        try:
+            count = 1
+            for paragraph in paragraphs:
+                pr = Paragraph(
+                    label=document.document_name+" paragraph " + str(count),
+                    paragraph=paragraph.get('paragraph'),
+                    document_id=document.id
                 )
-                db.session.add(p_tag)
-            count += 1
+                db.session.add(pr)
+                db.session.flush()
+                for tag in paragraph.get('tags'):
+                    p_tag = ParagraphTag(
+                        label=tag.get('text'),
+                        paragraph_id=pr.id
+                    )
+                    db.session.add(p_tag)
+                count += 1
 
-        db.session.commit()
-        return True
+            db.session.commit()
+            return True
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            raise
 
     def update_classification_result(self, user, document, table_edit_log):
+        try:
+            for edit in table_edit_log:
+                if(edit.get('type') == 'delete_tag'):
+                    tag = edit.get('data')
+                    paragraph_id = edit.get('row_id')
+                    glossary_tag = db.session.query(ParagraphTag).\
+                        join(Paragraph, Paragraph.id == ParagraphTag.paragraph_id).\
+                        join(Document, Document.id == Paragraph.document_id).\
+                        where(Document.id == document.id).\
+                        where(Paragraph.id == paragraph_id).\
+                        where(ParagraphTag.label == tag).\
+                        first()
+                    if(glossary_tag):
+                        db.session.delete(glossary_tag)
 
-        for edit in table_edit_log:
-            if(edit.get('type') == 'delete_tag'):
-                tag = edit.get('data')
-                paragraph_id = edit.get('row_id')
-                glossary_tag = db.session.query(ParagraphTag).\
-                    join(Paragraph, Paragraph.id == ParagraphTag.paragraph_id).\
-                    join(Document, Document.id == Paragraph.document_id).\
-                    where(Document.id == document.id).\
-                    where(Paragraph.id == paragraph_id).\
-                    where(ParagraphTag.label == tag).\
-                    first()
-                if(glossary_tag):
-                    db.session.delete(glossary_tag)
+                elif(edit.get('type') == 'add_tag'):
+                    tag = edit.get('data')
+                    paragraph_id = edit.get('row_id')
+                    new_tag = ParagraphTag(
+                        label=tag,
+                        paragraph_id=paragraph_id
+                    )
+                    db.session.add(new_tag)
 
-            elif(edit.get('type') == 'add_tag'):
-                tag = edit.get('data')
-                paragraph_id = edit.get('row_id')
-                new_tag = ParagraphTag(
-                    label=tag,
-                    paragraph_id=paragraph_id
-                )
-                db.session.add(new_tag)
+                    if(edit.get('new', None)):
+                        paragraph = db.session.query(Paragraph).where(
+                            Paragraph.id == paragraph_id).first()
+                        training_data = TrainingData(
+                            label=tag, paragraph=paragraph.paragraph, user_id=user.id)
+                        db.session.add(training_data)
 
-                if(edit.get('new', None)):
-                    paragraph = db.session.query(Paragraph).where(
-                        Paragraph.id == paragraph_id).first()
-                    training_data = TrainingData(
-                        label=tag, paragraph=paragraph.paragraph, user_id=user.id)
-                    db.session.add(training_data)
+                elif(edit.get('type') == 'delete_row'):
+                    paragraph_id = edit.get('row_id')
+                    paragraph_obj = db.session.query(Paragraph).\
+                        join(Document, Document.id == Paragraph.document_id).\
+                        where(Document.id == document.id).\
+                        where(Paragraph.id == paragraph_id).\
+                        first()
+                    if(paragraph_obj):
+                        db.session.delete(paragraph_obj)
 
-            elif(edit.get('type') == 'delete_row'):
-                paragraph_id = edit.get('row_id')
-                paragraph_obj = db.session.query(Paragraph).\
-                    join(Document, Document.id == Paragraph.document_id).\
-                    where(Document.id == document.id).\
-                    where(Paragraph.id == paragraph_id).\
-                    first()
-                if(paragraph_obj):
-                    db.session.delete(paragraph_obj)
-
-        db.session.commit()
-        return True
+            db.session.commit()
+            return True
+        except Exception as e:
+            print(e)
+            db.session.rollback()
+            raise
 
     def classify_paragraph(self, paragraph):
         paragraph_tags = self.fast_text_service.classify_paragraph(

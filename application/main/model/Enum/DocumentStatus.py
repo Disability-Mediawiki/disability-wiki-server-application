@@ -8,4 +8,5 @@ class DocumentStatus(enum.Enum):
     Requested = 'requested'
     Uploaded = 'uploaded'
     Deleted = 'deleted'
+    Rejected = 'rejected'
     Failed = 'failed'
