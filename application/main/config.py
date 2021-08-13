@@ -168,8 +168,7 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:password@127.0.0.1/dis_wiki"
-    # SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:diswikirights@127.0.0.1/dis_wiki"
+    SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:diswikirights@127.0.0.1/dis_wiki"
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # PROD CONFIG
