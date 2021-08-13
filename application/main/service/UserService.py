@@ -53,17 +53,26 @@ class UserService():
             raise
 
     def get_user(self, email):
-        user = User.query.filter_by(
+        # user = User.query.filter_by(
+        #     email=email
+        # ).first()
+        user = db.session.query(User).filter_by(
             email=email
         ).first()
         return user
 
     def get_user_by_id(self, id):
-        user = User.query.get(id)
+        # user = User.query.get(id)
+        user = db.session.query(User).filter_by(
+            id=id
+        ).first()
         return user
 
     def is_admin_user(self, id):
-        user = User.query.filter_by(
+        # user = User.query.filter_by(
+        #     id=id
+        # ).first()
+        user = db.session.query(User).filter_by(
             id=id
         ).first()
         if(user and user.admin):

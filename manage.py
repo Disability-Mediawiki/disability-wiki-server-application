@@ -30,6 +30,12 @@ manager.add_command('db', MigrateCommand)
 logging.basicConfig(filename='error.log', level=logging.DEBUG)
 
 
+@app.after_request
+def after_request(response):
+    db.session.close()
+    return response
+
+
 @manager.command
 def create_db():
     """Creates the db tables."""

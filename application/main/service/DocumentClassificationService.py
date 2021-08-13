@@ -13,12 +13,10 @@ from application.main.model.Paragraph import Paragraph
 from application.main.model.ParagraphTag import ParagraphTag
 from application.main.model.Document import Document
 from application.main.model.User import User
-from application.main.service.FastTextService import FastTextService
 
 
 class DocumentClassificationService():
     def __init__(self):
-        # self.fast_text_service = FastTextService()
         self.fast_text_service = None
 
     def get_all_paragraphs_and_tags_by_user(self, document_name, document_id, user):
@@ -76,7 +74,8 @@ class DocumentClassificationService():
                     document_id=document.id
                 )
                 db.session.add(pr)
-                db.session.flush()
+                # db.session.flush()
+                db.session.commit()
                 for tag in paragraph.get('tags'):
                     p_tag = ParagraphTag(
                         label=tag.get('text'),
@@ -140,15 +139,3 @@ class DocumentClassificationService():
             print(e)
             db.session.rollback()
             raise
-
-    def classify_paragraph(self, paragraph):
-        paragraph_tags = self.fast_text_service.classify_paragraph(
-            paragraph.paragraph)
-        if(paragraph_tags):
-            for tag in paragraph_tags[0][0]:
-                new_tag = ParagraphTag(
-                    label=tag.split('__label__')[1],
-                    paragraph_id=paragraph.id
-                )
-                db.session.add(new_tag)
-        return True

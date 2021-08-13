@@ -134,6 +134,7 @@ The detail overview and the implementation of this Project is described `report.
 
 >>  ```bash
 >>      $sudo mysql -u root -p
+>>      $password : >> diswikirights    
 >>      $create database dis_wiki;
 >>  ``` 
 > Update the `config.py [application/main/config.py]` file with the appropriate database settings. 
