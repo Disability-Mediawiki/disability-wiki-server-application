@@ -87,6 +87,40 @@ class SparqlService():
                 return False
         else:
             return False
+
+    # get items with sparql by alias name
+
+    def get_item_with_sparql_by_alias(self, label):
+        query = """
+             SELECT DISTINCT ?label ?s where
+                    {
+                      ?s ?p ?o;
+                       skos:altLabel ?label .
+                      FILTER(lang(?label)='fr' || lang(?label)='en')
+                      FILTER(?label = '""" + label + """'@en)
+                    }
+             """
+        self.sparql.setQuery(query)
+        self.sparql.setReturnFormat(JSON)
+        results = self.sparql.query().convert()
+        if (results.get('results', None) is not None and
+                results.get('results').get('bindings') is not None and
+                type(results.get('results').get('bindings')) is list and
+                len(results.get('results').get('bindings')) > 0 and
+                results.get('results').get('bindings')[0] is not None and
+                results.get('results').get('bindings')[0].get('s', None) is not None and
+                results.get('results').get('bindings')[0].get(
+                's').get('value', None) is not None
+                ):
+            item_qid = results['results']['bindings'][0]['s']['value'].split(
+                "/")[-1]
+            if(item_qid):
+                item = self.pywikibot.ItemPage(self.wikibase_repo, item_qid)
+                return item
+            else:
+                return False
+        else:
+            return False
     # Searches a concept based on its label on Tripple store
 
     def search_wiki_item_sparql(self, label):
@@ -99,6 +133,25 @@ class SparqlService():
                       FILTER(?label = '""" + label + """'@en)
     
                     }
+             """
+        self.sparql.setQuery(query)
+        self.sparql.setReturnFormat(JSON)
+        results = self.sparql.query().convert()
+        if (len(results['results']['bindings']) > 0):
+            return True
+        else:
+            return False
+
+    def search_wiki_item_by_alias(self, label):
+        query = """
+              SELECT DISTINCT ?s ?label  where
+                {
+                ?s ?p ?o;
+                    skos:altLabel ?label .
+                FILTER(lang(?label)='fr' || lang(?label)='en')
+                FILTER(?label = '""" + label + """'@en)
+
+                }
              """
         self.sparql.setQuery(query)
         self.sparql.setReturnFormat(JSON)

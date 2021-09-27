@@ -215,15 +215,26 @@ class WikibaseApi():
         is_exist = self.search_exact_wiki_item(
             self.capitalize_first_letter(topic.rstrip()))
         if (not search_result and not is_exist):
-            data = {}
-            label = {lang: topic.capitalize().rstrip()}
-            description = {
-                lang: topic.capitalize().rstrip()+" entity"}
-            data['labels'] = label
-            data['descriptions'] = description
-            topic_entity = self.pywikibot.ItemPage(self.wikibase_repo)
-            topic_entity.editEntity(data)
-            # return topic_entity
+            # CHECK IS ALIAS EXIST
+            is_alias_exist = self.sparql_service.search_wiki_item_by_alias(
+                self.capitalize_first_letter(topic.rstrip()))
+            if (not is_alias_exist):
+                # IF NOT TOPIC ALREADY EXIST, CREATE NEW TOPIC
+                data = {}
+                label = {lang: topic.capitalize().rstrip()}
+                description = {
+                    lang: topic.capitalize().rstrip()+" entity"}
+                data['labels'] = label
+                data['descriptions'] = description
+                topic_entity = self.pywikibot.ItemPage(self.wikibase_repo)
+                topic_entity.editEntity(data)
+                # return topic_entity
+            else:
+                # GET TOPIC BY ALIAS
+                topic_entity = self.sparql_service.get_item_with_sparql_by_alias(
+                    self.capitalize_first_letter(topic.rstrip()))
+                topic_entity.get()
+
         else:
             topic_entity = self.sparql_service.get_item_with_sparql(
                 self.capitalize_first_letter(topic.rstrip()))
