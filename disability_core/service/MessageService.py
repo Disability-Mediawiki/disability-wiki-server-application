@@ -22,6 +22,7 @@ class MessageService():
             document = json.loads(cmd)
             self.file_service.extract_document(document)
         print("COMPLETED: Document extracted %s" % body)
+        db.session.close()
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
     def upload_wikibase(self, ch, method, properties, body):
@@ -31,5 +32,5 @@ class MessageService():
             payload = json.loads(cmd)
             self.wikbase_service.upload_to_wikibase(payload)
         print("COMPLETED: UPLOAD TO WIKIBASE %s" % body)
-
+        db.session.close()
         ch.basic_ack(delivery_tag=method.delivery_tag)
