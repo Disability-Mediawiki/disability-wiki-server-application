@@ -4,6 +4,7 @@ from application.main.model.Enum.DocumentType import DocumentType
 from application.main.model.Paragraph import Paragraph
 from flask_restful import Resource, reqparse, reqparse
 import os
+import re
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 import logging
@@ -11,6 +12,8 @@ from flask import Flask, request, jsonify, current_app
 from flask_restplus import Resource, Api, Namespace
 import requests
 from bs4 import BeautifulSoup
+
+
 from .. import db
 from application.main.model.User import User
 from application.main.model.Document import Document
@@ -28,6 +31,7 @@ class WebContentService():
         self.pdf_service = PdfService()
         self.document_classification_service = DocumentClassificationService()
         self.publisher = PublisherService()
+        
 
     def upload_web_content(self, filename, language, description, country, paragraphs, link, user):
         try:
@@ -55,15 +59,18 @@ class WebContentService():
         try:
             count = 1
             for paragraph in paragraphs:
-                pr = Paragraph(
-                    label=document.document_name+"_paragraph_" + str(count),
-                    paragraph=paragraph.get('text'),
-                    document_id=document.id
-                )
-                db.session.add(pr)
-                count += 1
+                if paragraph:
+                    pr = Paragraph(
+                        label=document.document_name+"_paragraph_" + str(count),
+                        paragraph=re.sub(
+                            '\?|\#|\!|\/|\;|\:|\$', '', paragraph.get('text').replace("\n", " ").rstrip().lstrip()),
+                        document_id=document.id
+                    )
+                    db.session.add(pr)
+                    count += 1
             db.session.commit()
             self.publisher.publish_document_extraction(document)
+            
             return True
         except Exception as e:
             print(e)

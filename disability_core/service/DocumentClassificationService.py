@@ -6,6 +6,7 @@
 
 import logging
 import json
+import re
 from flask import Flask
 from flask_restplus import Resource, Api, Namespace
 from flask import current_app
@@ -24,7 +25,7 @@ class DocumentClassificationService():
     def classify_paragraph(self, paragraph):
         try:
             paragraph_tags = self.fast_text_service.classify_paragraph(
-                paragraph.paragraph)
+                re.sub('\?|\#|\!|\/|\;|\:|\$','',paragraph.paragraph.rstrip().lstrip()))
             if(paragraph_tags):
                 for tag in paragraph_tags[0][0]:
                     new_tag = ParagraphTag(

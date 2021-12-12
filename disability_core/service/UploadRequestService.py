@@ -54,8 +54,7 @@ class UploadRequestService():
                 document_name = document.document_name
 
             label = {document.language.value: document_name.capitalize()}
-            description = {
-                document.language.value: document.description.capitalize()}
+            description = {document.language.value: document.description.capitalize()}
 
             wiki_doc_item = self.wikibase_api.create_document_entity(
                 label, description, document_name, payload.get('url'), document.document_type)

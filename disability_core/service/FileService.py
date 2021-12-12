@@ -3,6 +3,7 @@
 from application.main.model.Enum.DocumentType import DocumentType
 import logging
 import os
+import re
 from threading import Thread
 
 from application import db
@@ -67,7 +68,8 @@ class FileService():
         try:
             # db.session.rollback();
             count = 1
-            for paragraph in paragraphs:
+            for p in paragraphs:
+                paragraph = re.sub('\?|\#|\!|\/|\;|\:|\$', '', p.rstrip().lstrip())
                 pr = Paragraph(
                     label=document.document_name.split(
                         '.')[0]+" paragraph " + str(count),
