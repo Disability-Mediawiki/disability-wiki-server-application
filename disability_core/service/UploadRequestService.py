@@ -76,12 +76,13 @@ class UploadRequestService():
                 paragraph_description = {
                     document.language.value: f"Paragraph from {document.document_name} document"}
                 try:
-                    paragraph_text = paragraph.paragraph.replace(
-                        '\n', ' ').replace('\t', ' ').rstrip().lstrip()
-                    paragraph_text = re.sub(
-                        '\ |\/|\;|\:|\]|\[|\{|\}|\?|\$|\%|\£|\*|\&|\@|\<|\>', ' ', paragraph_text)
-                    paragraph_entity = self.wikibase_api.create_paragraph_entity(
-                        paragraph_label, paragraph_description, paragraph_text.rstrip().lstrip(), wiki_doc_item, paragraph.paragraph_tags, document.language.value)
+                    if(not str.isspace(paragraph.paragraph) and paragraph.paragraph):
+                        paragraph_text = paragraph.paragraph.replace(
+                            '\n', ' ').replace('\t', ' ').rstrip().lstrip()
+                        paragraph_text = re.sub(
+                            '\ |\/|\;|\:|\]|\[|\{|\}|\?|\$|\%|\£|\*|\&|\@|\<|\>', ' ', paragraph_text)
+                        paragraph_entity = self.wikibase_api.create_paragraph_entity(
+                            paragraph_label, paragraph_description, paragraph_text.rstrip().lstrip(), wiki_doc_item, paragraph.paragraph_tags, document.language.value)
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     tb = traceback.extract_tb(exc_tb)[-1]
@@ -100,3 +101,4 @@ class UploadRequestService():
         except Exception as e:
             print(e)
             db.session.rollback()
+
