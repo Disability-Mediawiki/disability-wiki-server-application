@@ -59,7 +59,7 @@ class WebContentService():
         try:
             count = 1
             for paragraph in paragraphs:
-                if paragraph and not str.isspace(paragraph.get('text')):
+                if paragraph and paragraph.get('text') and not str.isspace(paragraph.get('text')):
                     pr = Paragraph(
                         label=document.document_name+"_paragraph_" + str(count),
                         paragraph=re.sub(
