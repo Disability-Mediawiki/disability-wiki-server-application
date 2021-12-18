@@ -78,7 +78,7 @@ class UploadRequestService():
                 try:
                     if(not str.isspace(paragraph.paragraph) and paragraph.paragraph):
                         paragraph_text = paragraph.paragraph.replace(
-                            '\n', ' ').replace('\t', ' ').rstrip().lstrip()
+                            '\n', ' ').replace('\t', ' ').replace('\r', ' ').rstrip().lstrip()
                         paragraph_text = re.sub(
                             '\ |\/|\;|\:|\]|\[|\{|\}|\?|\$|\%|\£|\*|\&|\@|\<|\>', ' ', paragraph_text)
                         paragraph_entity = self.wikibase_api.create_paragraph_entity(
