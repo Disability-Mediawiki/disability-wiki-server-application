@@ -130,6 +130,13 @@ The application is develoepd using `FLASK-RESTPLUS` framework by following MVC a
 The detail overview and the implementation of this Project is described `report.pdf` file in our repository.
 
 ## **Deployment**
+We strongly recommend you to manage a virtual env for python package. 
+Configure a virtual env usingn 
+```bash
+    python3 -m venv tutorial-env
+    tutorial-env\Scripts\activate.bat //on Windows
+    source tutorial-env/bin/activate //on Mac and Unix
+```
 
 > `1. Install MySQL`
 >
@@ -139,6 +146,9 @@ The detail overview and the implementation of this Project is described `report.
 > >     $sudo mysql -u root -p
 > >     $password : >> diswikirights
 > >     $create database dis_wiki;
+> >
+> >     $sudo python3 manage.py create_db //to run database migratuib
+> >     $sudo python3 manage.py delete_db //to delete all table
 > > ```
 > >
 > > Update the `config.py [application/main/config.py]` file with the appropriate database settings.

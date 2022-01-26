@@ -71,8 +71,11 @@ class UploadRequestService():
             for paragraph in paragraphs:
                 # paragraph_label = {
                 #     document.language.value: document_name.capitalize()+" "+paragraph.label.capitalize()}
+                # paragraph_label = {
+                #     document.language.value: paragraph.label.capitalize().rstrip().lstrip()}
+                
                 paragraph_label = {
-                    document.language.value: paragraph.label.capitalize().rstrip().lstrip()}
+                    document.language.value: f"{document_name.capitalize()} paragraph {count}"}
                 paragraph_description = {
                     document.language.value: f"Paragraph from {document.document_name} document"}
                 try:

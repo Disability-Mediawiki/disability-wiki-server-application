@@ -24,13 +24,14 @@ from application.main.model.UploadRequest import UploadRequest
 from application.main.service.FileService import FileService
 from .. import db
 
+import urllib.parse
 
 class UploadRequestService():
     def __init__(self):
         self.log = logging.getLogger(__name__)
         self.file_service = FileService()
         self.messaging_service = PublisherService()
-
+  
     def create_wikiedit_upload_request(self, user, document):
         try:
             upload_request = UploadRequest(
@@ -77,7 +78,9 @@ class UploadRequestService():
                     url = request.host_url
                     file_url = ""
                     if(document.document_type == DocumentType.Document):
-                        file_url = f"{url}api/file/download-document?file_name={document.document_name}"
+                        parsed_name = urllib.parse.quote_plus(
+                            document.document_name)
+                        file_url = f"{url}api/file/download-document?file_name={parsed_name}"
                     else:
                         file_url = document.document_link
 
